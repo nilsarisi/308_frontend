@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+nav a:hover {
+    color: #9bfdb2 !important; /* A custom hover color */
+  }
+  footer a {
+    color: #bbb;
+  }
+  footer a:hover {
+    color: #5357a7; /* A custom hover color */
+  }
+  
