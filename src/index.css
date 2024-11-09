@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 nav a:hover {
-    color: #c94ae2 !important; /* A custom hover color */
+    color: #9bfdb2 !important; /* A custom hover color */
   }
   footer a {
     color: #bbb;

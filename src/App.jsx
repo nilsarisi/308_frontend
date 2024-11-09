@@ -16,6 +16,7 @@ import './index.css'
 const App = () => {
   return (
       <div>
+      <Navbar></Navbar>
        <Routes>
           <Route path='/' element={<Home/>}></Route>
           <Route path='/about' element={<About/>}></Route>
@@ -27,10 +28,10 @@ const App = () => {
           <Route path='/placeorder' element={<PlaceOrder/>}></Route>
           <Route path='/product/:productID' element={<Product/>}></Route>
         </Routes>
-
-      <Navbar></Navbar>
-      <Login></Login>
+        
+      <Product></Product>
       <Footer></Footer>
+      
     </div>
   )
 }

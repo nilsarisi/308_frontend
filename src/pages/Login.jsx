@@ -58,8 +58,8 @@ const LoginSignup = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[url('/src/assets/background.png')] bg-cover bg-center">
-      <div className="w-96 max-w-96 p-8 space-y-6 bg-white rounded-full shadow-md">
-        <h2 className="font-karla text-2xl text-center">
+      <div className="w-96 max-w-96 p-8 space-y-6">
+        <h2 className="font-karla text-5xl text-center font-bold text-green-900">
           {isLogin ? 'Login' : 'Sign Up'}
         </h2>
         {error && <p className="text-red-600">{error}</p>}
@@ -72,7 +72,7 @@ const LoginSignup = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded-md"
+                className="w-full p-4 border rounded-md"
                 required
               />
             </div>
@@ -124,7 +124,7 @@ const LoginSignup = () => {
               </div>
             </>
           )}
-          <button type="submit" className="w-auto px-6 py-2 text-white bg-yellow-700 rounded-md mx-auto block">
+          <button type="submit" className="w-auto px-6 py-2 text-white bg-green-900 rounded-md mx-auto block">
             {isLogin ? 'Login' : 'Sign Up'}
           </button>
         </form>
