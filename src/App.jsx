@@ -11,10 +11,13 @@ import Contact from "./pages/Contact"
 import Order from "./pages/Order"
 import PlaceOrder from "./pages/PlaceOrder"
 import Product from "./pages/Product"
+import { CartProvider } from './contexts/CartContext'; 
 import './index.css'
 
 const App = () => {
+  
   return (
+    <CartProvider>
       <div>
       <Navbar></Navbar>
        <Routes>
@@ -28,11 +31,10 @@ const App = () => {
           <Route path='/placeorder' element={<PlaceOrder/>}></Route>
           <Route path='/product/:productID' element={<Product/>}></Route>
         </Routes>
-        
       <Product></Product>
       <Footer></Footer>
-      
-    </div>
+      </div>
+      </CartProvider>
   )
 }
 

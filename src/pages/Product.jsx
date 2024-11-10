@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useCart } from '../contexts/CartContext';
 import productImage from "../assets/tofu.png"; 
 import productImage1 from "../assets/everfreshTofu.png"; 
 
 const Product = () => {
   const [quantity, setQuantity] = useState(1); 
+  const { addProductToCart } = useCart();
 
   const increaseQuantity = () => {
     setQuantity(quantity + 1);
@@ -13,6 +15,16 @@ const Product = () => {
     if (quantity > 1) {
       setQuantity(quantity - 1);
     }
+  };
+
+  const handleAddToCart = () => {
+    const product = {
+      id: 1, // Ürünün benzersiz ID'si
+      name: 'Tofu',
+      price: 149.90,
+      quantity: quantity, // Seçilen miktarı ekliyoruz
+    };
+    addProductToCart(product); // Sepete ekliyoruz
   };
 
   return (
@@ -38,13 +50,13 @@ const Product = () => {
             <button onClick={increaseQuantity} className="bg-gray-300 text-black px-2 py-1 rounded">+</button>
           </div>
 
-          <button className="mt-4 bg-yellow-500 text-white px-4 py-2 rounded mr-2">Add Cart</button>
+          <button onClick={handleAddToCart} className="mt-4 bg-yellow-500 text-white px-4 py-2 rounded mr-2">Add to Cart</button>
           <button className="mt-4 bg-green-600 text-white px-4 py-2 rounded">Buy Now</button>
         </div>
       </div>
       <div className="mt-6">
-        <h2 className="text-xl font-bold">Product Features</h2>
-        <ul className="list-disc pl-5">
+        <h2 className="text-l font-bold">Product Features</h2>
+        <ul className="list-disc pl-5 text-xs">
           <li>Made from local soybean seeds, this curd is produced by curdling fresh soybean milk.</li>
           <li>Versatile consumption options: can be enjoyed fried or raw.</li>
           <li>Suitable for various recipes, including salads, pasta dishes, and traditional Turkish menemen.</li>
@@ -52,14 +64,14 @@ const Product = () => {
         </ul>
       </div>
       
-      <div className="mt-6">
-        <h2 className="text-xl font-bold">Ingredients</h2>
-        <ul className="list-disc pl-5">
+      <div className="mt-6 mb-12">
+        <h2 className="text-l font-bold">Ingredients</h2>
+        <ul className="list-disc pl-5 text-xs">
           <li>Local Soybeans, Water, Salt, Lemon Salt.</li>
         </ul>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6p-4 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-xl font-bold">Similar Products</h2>
         <div className="flex space-x-4">
           <div className="border p-2 w-1/4">
