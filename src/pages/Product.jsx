@@ -67,6 +67,7 @@ const Product = () => {
     <div className="container mx-auto p-4">
       <div className="flex">
         <div className="w-1/2">
+          {/* Product image */}
           <img src={product.image} alt={product.name} className="w-full" />
         </div>
         <div className="w-1/2 pl-4">
@@ -74,7 +75,12 @@ const Product = () => {
           <p className="text-xl text-green-700">₺{product.price}</p>
           <p className="mt-2">{product.description}</p>
 
-          {/* Quantity Controls */}
+          {/* Stock status */}
+          <p className={`mt-4 ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+              {product.stock > 0 ? "In stock" : "Out of stock"}
+          </p>
+
+          {/* Increasing or decreasing amount of products */}
           <div className="flex items-center mt-4">
             <button
               onClick={decreaseQuantity}
@@ -91,14 +97,19 @@ const Product = () => {
             </button>
           </div>
 
-          <button
-            onClick={handleAddToCart}
+          {/* Adding to cart */}
+          <button 
+            onClick={handleAddToCart} 
             className="mt-4 bg-yellow-500 text-white px-4 py-2 rounded mr-2"
+            disabled={product.stock === 0}
           >
-            Add to Cart
+            {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
           </button>
-          <button className="mt-4 bg-green-600 text-white px-4 py-2 rounded">
-            Buy Now
+          <button 
+            className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+            disabled={product.stock === 0}
+          >
+            {product.stock === 0 ? "Out of Stock" : "Buy Now"}
           </button>
         </div>
       </div>
