@@ -3,6 +3,9 @@ import { useCart } from '../contexts/CartContext';
 import { useParams, Link } from 'react-router-dom';
 import productImage from '../assets/tofu.png';
 import productImage1 from '../assets/everfreshTofu.png';
+import productImage2 from '../assets/soap.png';
+import productImage3 from '../assets/detergent.jpg'
+
 
 const Product = () => {
   const { productID } = useParams();
@@ -36,6 +39,32 @@ const Product = () => {
         // Add more features
       ],
       ingredients: ['Soybeans', 'Water', 'Salt'],
+    },
+    {
+      id: 3,
+      name: 'Natural Soap',
+      price: 89.9,
+      image: productImage2,
+      description: 'soap description here...',
+      features: [
+        'Feature 1...',
+        'Feature 2...',
+        // Add more features
+      ],
+      ingredients: ['ingridient 1', ',ingridient 2'],
+    },
+    {
+      id: 4,
+      name: 'Detergent',
+      price: 59.9,
+      image: productImage3,
+      description: 'detergent description here...',
+      features: [
+        'Feature 1...',
+        'Feature 2...',
+        // Add more features
+      ],
+      ingredients: ['ingridient 1', ',ingridient 2'],
     },
     // Add more products as needed
   ];

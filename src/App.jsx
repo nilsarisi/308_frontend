@@ -11,29 +11,37 @@ import Contact from './pages/Contact';
 import Order from './pages/Order';
 import PlaceOrder from './pages/PlaceOrder';
 import Product from './pages/Product';
-import Products from './pages/Products'; // Import the Products component
+import Products from './pages/Products';
 import { CartProvider } from './contexts/CartContext';
 import './index.css';
+import OrderSuccess from './pages/OrderSuccess';
 
 const App = () => {
   return (
     <CartProvider>
-      <div>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/collection" element={<Collection />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/order" element={<Order />} />
-          <Route path="/placeorder" element={<PlaceOrder />} />
-          <Route path="/products" element={<Products />} /> {/* Add this route */}
-          <Route path="/product/:productID" element={<Product />} />
-        </Routes>
-        <Footer />
-      </div>
+      <Navbar />
+      <Routes>
+        {/* Main Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/collection" element={<Collection />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/order" element={<Order />} />
+        <Route path="/placeorder" element={<PlaceOrder />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
+
+        {/* Products Route */}
+        <Route path="/products" element={<Products />} />
+
+        {/* Dynamic Category Route */}
+        <Route path="/category/:category" element={<Products />} />
+
+        {/* Product Details Route */}
+        <Route path="/product/:productID" element={<Product />} />
+      </Routes>
+      <Footer />
     </CartProvider>
   );
 };

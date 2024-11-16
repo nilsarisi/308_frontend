@@ -1,26 +1,58 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import VeganSlider from '../components/VeganSlider'; 
-import tofuImage from '../assets/tofu.png';  
-import everfreshTofuImage from '../assets/everfreshTofu.png'; 
+import VeganSlider from '../components/VeganSlider';
+import { useCart } from '../contexts/CartContext'; // Import useCart
+import tofuImage from '../assets/tofu.png';
+import everfreshTofuImage from '../assets/everfreshTofu.png';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('');
+  const { addProductToCart } = useCart(); // Get addProductToCart from context
 
   const handleCategoryClick = (category) => {
     setActiveCategory(category);
   };
 
+  // Sample products
+  const products = [
+    {
+      id: 1,
+      name: 'Tofu',
+      price: 149.9,
+      image: tofuImage,
+      category: 'food',
+    },
+    {
+      id: 2,
+      name: 'Everfresh Tofu',
+      price: 699.9,
+      image: everfreshTofuImage,
+      category: 'food',
+    },
+  ];
+
+  // Handle adding a product to the cart
+  const handleAddToCart = (product) => {
+    addProductToCart({ ...product, quantity: 1 });
+    alert(`${product.name} added to cart!`);
+  };
+
+  const handleViewDetails = (productId) => {
+    navigate(`/product/${productId}`);
+  };
+
   return (
     <div>
       {/* Slider */}
-      <VeganSlider />  
+      <VeganSlider />
 
       {/* Categories Section */}
       <div className="container mx-auto py-16">
         <div className="flex flex-wrap justify-center mt-8">
           <Link
-            to="/category/all-products"
+            to="/products"
             onClick={() => handleCategoryClick('all-products')}
             className={`text-xl mx-10 pb-2 ${activeCategory === 'all-products' ? 'border-b-4 border-green-500' : 'hover:border-b-4 hover:border-green-900'}`}
           >
@@ -47,20 +79,6 @@ const Home = () => {
           >
             Cleaning
           </Link>
-          <Link
-            to="/category/aromatherapy"
-            onClick={() => handleCategoryClick('aromatherapy')}
-            className={`text-xl mx-10 pb-2 ${activeCategory === 'aromatherapy' ? 'border-b-4 border-green-500' : 'hover:border-b-4 hover:border-green-900'}`}
-          >
-            Aromatherapy
-          </Link>
-          <Link
-            to="/category/vegan-life"
-            onClick={() => handleCategoryClick('vegan-life')}
-            className={`text-xl mx-10 pb-2 ${activeCategory === 'vegan-life' ? 'border-b-4 border-green-500' : 'hover:border-b-4 hover:border-green-900'}`}
-          >
-            Vegan life
-          </Link>
         </div>
       </div>
 
@@ -68,18 +86,24 @@ const Home = () => {
       <div className="bg-gray-100 py-16">
         <h2 className="text-2xl font-bold text-center">Our Products</h2>
         <div className="flex justify-center mt-8 space-x-8">
-          <div className="w-60 bg-white p-4 rounded-lg shadow-lg">
-            <img src={tofuImage} alt="Tofu" className="w-full h-40 object-cover rounded-md" />
-            <h3 className="text-xl mt-4">Tofu</h3>
-            <p className="text-green-700 mt-2">₺149,90</p>
-            <button className="mt-4 bg-yellow-500 text-black py-2 px-4 rounded-full">Add to Cart</button>
-          </div>
-          <div className="w-60 bg-white p-4 rounded-lg shadow-lg">
-            <img src={everfreshTofuImage} alt="Everfresh Tofu" className="w-full h-40 object-cover rounded-md" />
-            <h3 className="text-xl mt-4">Everfresh Tofu</h3>
-            <p className="text-green-700 mt-2">₺699,90</p>
-            <button className="mt-4 bg-yellow-500 text-black py-2 px-4 rounded-full">Add to Cart</button>
-          </div>
+          {products.map((product) => (
+            <div 
+              key={product.id} 
+              className="w-60 bg-white p-4 rounded-lg shadow-lg cursor-pointer"
+              onClick={() => handleViewDetails(product.id)}
+            >
+
+              <img src={product.image} alt={product.name} className="w-full h-40 object-cover rounded-md" />
+              <h3 className="text-xl mt-4">{product.name}</h3>
+              <p className="text-green-700 mt-2">₺{product.price.toFixed(2)}</p>
+              <button
+                onClick={() => handleAddToCart(product)}
+                className="mt-4 bg-yellow-500 text-black py-2 px-4 rounded-full"
+              >
+                Add to Cart
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
