@@ -23,6 +23,7 @@ const Home = () => {
       price: 149.9,
       image: tofuImage,
       category: 'food',
+      stock: 10, // Stock available
     },
     {
       id: 2,
@@ -30,11 +31,16 @@ const Home = () => {
       price: 699.9,
       image: everfreshTofuImage,
       category: 'food',
+      stock: 0, // Out of stock
     },
   ];
 
   // Handle adding a product to the cart
   const handleAddToCart = (product) => {
+    if (product.stock <= 0) {
+      alert("Sorry, this product is out of stock.");
+      return; // Prevent adding out-of-stock products to the cart
+    }
     addProductToCart({ ...product, quantity: 1 });
     alert(`${product.name} added to cart!`);
   };
@@ -92,15 +98,15 @@ const Home = () => {
               className="w-60 bg-white p-4 rounded-lg shadow-lg cursor-pointer"
               onClick={() => handleViewDetails(product.id)}
             >
-
               <img src={product.image} alt={product.name} className="w-full h-40 object-cover rounded-md" />
               <h3 className="text-xl mt-4">{product.name}</h3>
               <p className="text-green-700 mt-2">₺{product.price.toFixed(2)}</p>
               <button
                 onClick={() => handleAddToCart(product)}
-                className="mt-4 bg-yellow-500 text-black py-2 px-4 rounded-full"
+                className={`mt-4 bg-yellow-500 text-black py-2 px-4 rounded-full ${product.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : ''}`}
+                disabled={product.stock === 0} // Disable button if out of stock
               >
-                Add to Cart
+                {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
               </button>
             </div>
           ))}
