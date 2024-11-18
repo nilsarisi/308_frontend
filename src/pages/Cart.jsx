@@ -50,13 +50,17 @@ const Cart = () => {
                   <p>
                     ₺{item.price} x {item.quantity}
                   </p>
+                  {/* Display stock status */}
+                  <p className={`mt-2 ${item.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    {item.stock > 0 ? 'In stock' : 'Out of stock'}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => decreaseQuantity(item.id)}
                   className="bg-gray-300 text-black px-2 py-1 rounded"
-                  disabled={item.quantity <= 1}
+                  disabled={item.quantity <= 1 || item.stock <= 0}
                 >
                   -
                 </button>
@@ -64,6 +68,7 @@ const Cart = () => {
                 <button
                   onClick={() => increaseQuantity(item.id)}
                   className="bg-gray-300 text-black px-2 py-1 rounded"
+                  disabled={item.stock <= 0}
                 >
                   +
                 </button>
