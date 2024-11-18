@@ -29,10 +29,10 @@ const Products = () => {
   };
 
   const products = [
-    { id: 1, name: 'Tofu', price: 149.9, image: productImage, category: 'food', stock: true },
-    { id: 2, name: 'Everfresh Tofu 1000gr', price: 699.9, image: productImage1, category: 'food', stock: false },
-    { id: 3, name: 'Natural Soap', price: 89.9, image: productImage2, category: 'cosmetics', stock: true },
-    { id: 4, name: 'Detergent', price: 59.9, image: productImage3, category: 'cleaning', stock: true },
+    { id: 1, name: 'Tofu', price: 149.9, image: productImage, category: 'food', stock: 10 },
+    { id: 2, name: 'Everfresh Tofu 1000gr', price: 699.9, image: productImage1, category: 'food', stock: 0 },
+    { id: 3, name: 'Natural Soap', price: 89.9, image: productImage2, category: 'cosmetics', stock: 5 },
+    { id: 4, name: 'Detergent', price: 59.9, image: productImage3, category: 'cleaning', stock: 3 },
   ];
 
   // Filter products based on category
@@ -48,7 +48,7 @@ const Products = () => {
   // Filter products based on availability
   const filteredByAvailability = availability === 'all'
     ? filteredByPrice
-    : filteredByPrice.filter((product) => product.stock === (availability === 'in-stock'));
+    : filteredByPrice.filter((product) => product.stock > 0 === (availability === 'in-stock'));
 
   // Sort products based on selected option
   const sortedProducts = [...filteredByAvailability].sort((a, b) => {
@@ -139,9 +139,13 @@ const Products = () => {
                 <img src={product.image} alt={product.name} className="w-full" />
                 <p className="font-bold">{product.name}</p>
                 <p className="text-green-700">₺{product.price}</p>
-                <p>{product.stock ? 'In Stock' : 'Out of Stock'}</p>
+                <p className={product.stock ? 'text-green-600' : 'text-red-600'}>
+                  {product.stock ? 'In Stock' : 'Out of Stock'}
+                </p>
                 <Link to={`/product/${product.id}`}>
-                  <button className="mt-2 bg-blue-500 text-white px-2 py-1 rounded">
+                  <button 
+                    className="mt-2 bg-blue-500 text-white px-2 py-1 rounded"
+                  >
                     View Details
                   </button>
                 </Link>
