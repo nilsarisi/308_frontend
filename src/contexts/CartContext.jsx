@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Create CartContext to manage cart and product states globally
 const CartContext = createContext();
@@ -36,6 +36,18 @@ export const CartProvider = ({ children }) => {
     // More products can be added here
   ]);
 
+  // Sync cart state with localStorage to persist the cart across page reloads
+  useEffect(() => {
+    const storedCart = JSON.parse(localStorage.getItem('cart'));
+    if (storedCart) {
+      setCart(storedCart);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
+
   // Function to update the stock of a product (optional for now)
   const updateProductStock = (id, newStock) => {
     setProducts((prevState) =>
@@ -50,28 +62,31 @@ export const CartProvider = ({ children }) => {
 
   // Function to add a product to the cart
   const addProductToCart = (product) => {
-    // Check if the product is out of stock
     if (product.stock <= 0) {
-      alert('Sorry, this product is out of stock!');
-      return; // Prevent adding out-of-stock products to the cart
+      alert("Sorry, this product is out of stock.");
+      return;
     }
-
+  
     setCart((prevCart) => {
-      // Check if the product already exists in the cart
-      const existingProductIndex = prevCart.findIndex(
+      const updatedCart = [...prevCart];
+      const existingProductIndex = updatedCart.findIndex(
         (item) => item.id === product.id
       );
-
+  
       if (existingProductIndex !== -1) {
-        // If product is already in the cart, update the quantity
-        const updatedCart = [...prevCart];
         updatedCart[existingProductIndex].quantity += product.quantity;
-        return updatedCart;
       } else {
-        // If product is not in the cart, add it as a new product
-        return [...prevCart, product];
+        updatedCart.push({ ...product, quantity: product.quantity || 1 });
       }
-    });
+  
+      // Update the product stock in the global state
+      const updatedProducts = products.map((p) =>
+        p.id === product.id ? { ...p, stock: p.stock - product.quantity } : p
+      );
+      setProducts(updatedProducts);
+  
+      return updatedCart;
+    });  
   };
 
   // Function to remove a product from the cart
@@ -84,8 +99,8 @@ export const CartProvider = ({ children }) => {
     setCart(
       cart.map((item) => {
         if (item.id === productId) {
-          // Increase quantity
-          if (action === 'increase') {
+          // Increase quantity (but not above stock)
+          if (action === 'increase' && item.quantity < item.stock) {
             return { ...item, quantity: item.quantity + 1 };
           } 
           // Decrease quantity (but not below 1)
