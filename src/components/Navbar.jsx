@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // useNavigate for navigation
 import logo from '../assets/logo.png';
 import {
   AiOutlineUser,
@@ -15,10 +15,43 @@ const Navbar = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [accountMenuVisible, setAccountMenuVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(''); // New state for search term
+  const [filteredProducts, setFilteredProducts] = useState([]); // To store filtered products
   const { cart } = useCart(); // Access cart from context
+  const navigate = useNavigate(); // For navigation
 
   // Calculate total number of items in the cart
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+
+  // Handle search input
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchTerm(query);
+
+    // Filter products based on the search term
+    const products = [
+      { id: 1, name: 'Tofu', price: 149.9, image: logo, category: 'food', stock: 10 },
+      { id: 2, name: 'Everfresh Tofu 1000gr', price: 699.9, image: logo, category: 'food', stock: 0 },
+      { id: 3, name: 'Natural Soap', price: 89.9, image: logo, category: 'cosmetics', stock: 5 },
+      { id: 4, name: 'Detergent', price: 59.9, image: logo, category: 'cleaning', stock: 3 },
+    ];
+
+    if (query) {
+      const filtered = products.filter((product) =>
+        product.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts([]);
+    }
+  };
+
+  // Handle search result click to navigate to product detail page
+  const handleProductClick = (productId) => {
+    navigate(`/product/${productId}`);
+    setSearchTerm(''); // Clear search term after selecting
+    setFilteredProducts([]); // Clear filtered products after selecting
+  };
 
   const closeAccountMenu = () => {
     setAccountMenuVisible(false);
@@ -60,16 +93,22 @@ const Navbar = () => {
           type="text"
           placeholder="Search an item"
           className="w-full outline-none bg-transparent text-white"
+          value={searchTerm} // Bind searchTerm to input
+          onChange={handleSearchChange} // Handle change
         />
-        {isHovered && (
+        {isHovered && searchTerm && filteredProducts.length > 0 && (
           <div className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-lg mt-2 p-4 z-10">
-            <p className="text-gray-600 font-semibold">Popular Searches:</p>
+            <p className="text-gray-600 font-semibold">Search Results:</p>
             <ul className="text-gray-800 mt-2">
-              <li className="hover:bg-gray-200 p-2 cursor-pointer">Tofu</li>
-              <li className="hover:bg-gray-200 p-2 cursor-pointer">
-                Sunscreen
-              </li>
-              <li className="hover:bg-gray-200 p-2 cursor-pointer">Shampoo</li>
+              {filteredProducts.map((product) => (
+                <li
+                  key={product.id}
+                  className="hover:bg-gray-200 p-2 cursor-pointer"
+                  onClick={() => handleProductClick(product.id)} // Navigate to product page
+                >
+                  {product.name}
+                </li>
+              ))}
             </ul>
           </div>
         )}
