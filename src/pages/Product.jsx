@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import productImage from '../assets/tofu.png';
-import productImage1 from '../assets/everfreshTofu.png';
-import productImage2 from '../assets/soap.png';
-import productImage3 from '../assets/detergent.jpg';
+import productImage from '../assets/products/tofu.png';
+import productImage1 from '../assets/products/everfreshTofu.png';
+import productImage2 from '../assets/products/soap.png';
+import productImage3 from '../assets/products/detergent.jpg';
 import { useCart } from '../contexts/CartContext';
 
 const Product = () => {

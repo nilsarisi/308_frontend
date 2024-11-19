@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import VeganSlider from '../components/VeganSlider';
 import { useCart } from '../contexts/CartContext'; // Import useCart
-import tofuImage from '../assets/tofu.png';
-import everfreshTofuImage from '../assets/everfreshTofu.png';
+import tofuImage from '../assets/products/tofu.png';
+import everfreshTofuImage from '../assets/products/everfreshTofu.png';
 import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
