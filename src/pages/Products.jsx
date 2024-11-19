@@ -8,7 +8,6 @@ import productImage3 from '../assets/detergent.jpg';
 const Products = () => {
   const [activeCategory, setActiveCategory] = useState('all-products');
   const [sortOption, setSortOption] = useState('default');
-  const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [availability, setAvailability] = useState('all');
 
@@ -139,13 +138,15 @@ const Products = () => {
                 <img src={product.image} alt={product.name} className="w-full" />
                 <p className="font-bold">{product.name}</p>
                 <p className="text-green-700">₺{product.price}</p>
-                <p className={product.stock ? 'text-green-600' : 'text-red-600'}>
-                  {product.stock ? 'In Stock' : 'Out of Stock'}
+                <p className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
+                  {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                 </p>
+                {/* Show available stock quantity if in stock */}
+                {product.stock > 0 && (
+                  <p className="text-sm text-gray-500 mt-1">Available: {product.stock}</p>
+                )}
                 <Link to={`/product/${product.id}`}>
-                  <button 
-                    className="mt-2 bg-blue-500 text-white px-2 py-1 rounded"
-                  >
+                  <button className="mt-2 bg-blue-500 text-white px-2 py-1 rounded">
                     View Details
                   </button>
                 </Link>
