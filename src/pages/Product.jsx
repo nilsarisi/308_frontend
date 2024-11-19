@@ -11,6 +11,7 @@ const Product = () => {
   const [quantity, setQuantity] = useState(1);
   const { addProductToCart } = useCart();
 
+  // Sample products data
   const products = [
     { id: 1, name: 'Tofu', price: 149.9, image: productImage, stock: 10, features: ['Made from soybeans', 'High protein'], ingredients: ['Soybeans', 'Water'] },
     { id: 2, name: 'Everfresh Tofu 1000gr', price: 699.9, image: productImage1, stock: 0, features: ['Made from soybeans'], ingredients: ['Soybeans', 'Water'] },
@@ -18,6 +19,7 @@ const Product = () => {
     { id: 4, name: 'Detergent', price: 59.9, image: productImage3, stock: 3, features: ['Effective on grease'], ingredients: ['Water', 'Sodium'] },
   ];
 
+  // Find the product based on the product ID
   const product = products.find((p) => p.id === parseInt(productID));
 
   if (!product) {
@@ -35,14 +37,20 @@ const Product = () => {
       alert("Sorry, this product is out of stock.");
       return;
     }
+    
+    // Ensure the quantity does not exceed stock
+    const quantityToAdd = Math.min(quantity, product.stock);
+
     const productToAdd = {
       id: product.id,
       name: product.name,
       price: product.price,
-      quantity: quantity, 
-      image: product.image, 
+      quantity: quantityToAdd,
+      image: product.image,
     };
-    addProductToCart(productToAdd); 
+
+    addProductToCart(productToAdd);
+    alert(`${product.name} added to cart!`);
   };
 
   return (
@@ -62,7 +70,7 @@ const Product = () => {
 
           {/* Display quantity available */}
           {product.stock > 0 && (
-            <p className="text-sm text-gray-500 mt-1">Available: {product.stock} adet</p>
+            <p className="text-sm text-gray-500 mt-1">Available: {product.stock}</p>
           )}
 
           <div className="flex items-center mt-4">
@@ -95,7 +103,6 @@ const Product = () => {
 
       <div className="mt-6">
         <h2 className="text-l font-bold">Product Features</h2>
-        {/* Ensure features is an array before mapping */}
         <ul className="list-disc pl-5 text-xs">
           {Array.isArray(product.features) && product.features.length > 0 ? (
             product.features.map((feature, index) => (
@@ -109,7 +116,6 @@ const Product = () => {
 
       <div className="mt-6 mb-12">
         <h2 className="text-l font-bold">Ingredients</h2>
-        {/* Ensure ingredients is an array before mapping */}
         <ul className="list-disc pl-5 text-xs">
           {Array.isArray(product.ingredients) && product.ingredients.length > 0 ? (
             product.ingredients.map((ingredient, index) => (
