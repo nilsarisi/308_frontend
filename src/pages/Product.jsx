@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useCart } from '../contexts/CartContext';
 import { useParams, Link } from 'react-router-dom';
 import productImage from '../assets/tofu.png';
 import productImage1 from '../assets/everfreshTofu.png';
 import productImage2 from '../assets/soap.png';
-import productImage3 from '../assets/detergent.jpg'
+import productImage3 from '../assets/detergent.jpg';
+import { useCart } from '../contexts/CartContext';
 
 const Product = () => {
   const { productID } = useParams();
@@ -12,59 +12,10 @@ const Product = () => {
   const { addProductToCart } = useCart();
 
   const products = [
-    {
-      id: 1,
-      name: 'Tofu',
-      price: 149.9,
-      image: productImage,
-      description:
-        'It is obtained by curdling the milk of soybeans produced from local soybean seeds...',
-      features: [
-        'Made from local soybean seeds...',
-        'Versatile consumption options...',
-      ],
-      ingredients: ['Local Soybeans', 'Water', 'Salt', 'Lemon Salt'],
-      stock: 10,
-    },
-    {
-      id: 2,
-      name: 'Everfresh Tofu 1000gr',
-      price: 699.9,
-      image: productImage1,
-      description: 'Everfresh Tofu 1000gr description here...',
-      features: [
-        'Feature 1...',
-        'Feature 2...',
-      ],
-      ingredients: ['Soybeans', 'Water', 'Salt'],
-      stock: 0,
-    },
-    {
-      id: 3,
-      name: 'Natural Soap',
-      price: 89.9,
-      image: productImage2,
-      description: 'Soap description here...',
-      features: [
-        'Feature 1...',
-        'Feature 2...',
-      ],
-      ingredients: ['Ingredient 1', 'Ingredient 2'],
-      stock: 5,
-    },
-    {
-      id: 4,
-      name: 'Detergent',
-      price: 59.9,
-      image: productImage3,
-      description: 'Detergent description here...',
-      features: [
-        'Feature 1...',
-        'Feature 2...',
-      ],
-      ingredients: ['Ingredient 1', 'Ingredient 2'],
-      stock: 3,
-    },
+    { id: 1, name: 'Tofu', price: 149.9, image: productImage, stock: 10, features: ['Made from soybeans', 'High protein'], ingredients: ['Soybeans', 'Water'] },
+    { id: 2, name: 'Everfresh Tofu 1000gr', price: 699.9, image: productImage1, stock: 0, features: ['Made from soybeans'], ingredients: ['Soybeans', 'Water'] },
+    { id: 3, name: 'Natural Soap', price: 89.9, image: productImage2, stock: 5, features: ['Made from natural ingredients'], ingredients: ['Glycerin', 'Essential oils'] },
+    { id: 4, name: 'Detergent', price: 59.9, image: productImage3, stock: 3, features: ['Effective on grease'], ingredients: ['Water', 'Sodium'] },
   ];
 
   const product = products.find((p) => p.id === parseInt(productID));
@@ -109,6 +60,11 @@ const Product = () => {
             {product.stock > 0 ? "In stock" : "Out of stock"}
           </p>
 
+          {/* Display quantity available */}
+          {product.stock > 0 && (
+            <p className="text-sm text-gray-500 mt-1">Available: {product.stock} adet</p>
+          )}
+
           <div className="flex items-center mt-4">
             <button
               onClick={decreaseQuantity}
@@ -127,7 +83,6 @@ const Product = () => {
             </button>
           </div>
 
-          {/* Add to Cart and Buy Now buttons */}
           <button 
             onClick={handleAddToCart} 
             className={`mt-4 ${product.stock === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-yellow-500'} text-white px-4 py-2 rounded mr-2`}
@@ -135,30 +90,34 @@ const Product = () => {
           >
             {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
           </button>
-          <button 
-            className={`mt-4 ${product.stock === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600'} text-white px-4 py-2 rounded`}
-            disabled={product.stock === 0}
-          >
-            {product.stock === 0 ? "Out of Stock" : "Buy Now"}
-          </button>
         </div>
       </div>
 
       <div className="mt-6">
         <h2 className="text-l font-bold">Product Features</h2>
+        {/* Ensure features is an array before mapping */}
         <ul className="list-disc pl-5 text-xs">
-          {product.features.map((feature, index) => (
-            <li key={index}>{feature}</li>
-          ))}
+          {Array.isArray(product.features) && product.features.length > 0 ? (
+            product.features.map((feature, index) => (
+              <li key={index}>{feature}</li>
+            ))
+          ) : (
+            <li>No features available</li>
+          )}
         </ul>
       </div>
 
       <div className="mt-6 mb-12">
         <h2 className="text-l font-bold">Ingredients</h2>
+        {/* Ensure ingredients is an array before mapping */}
         <ul className="list-disc pl-5 text-xs">
-          {product.ingredients.map((ingredient, index) => (
-            <li key={index}>{ingredient}</li>
-          ))}
+          {Array.isArray(product.ingredients) && product.ingredients.length > 0 ? (
+            product.ingredients.map((ingredient, index) => (
+              <li key={index}>{ingredient}</li>
+            ))
+          ) : (
+            <li>No ingredients listed</li>
+          )}
         </ul>
       </div>
 
@@ -176,7 +135,7 @@ const Product = () => {
                 />
                 <p>{similarProduct.name}</p>
                 <p className="text-green-700">₺{similarProduct.price}</p>
-                <Link to={`/product/${similarProduct.id}`}>
+                <Link to={`/product/${similarProduct.id}`} state={{ quantity: similarProduct.stock }}>
                   <button className="mt-2 bg-blue-500 text-white px-2 py-1 rounded">
                     View Details
                   </button>
