@@ -7,24 +7,31 @@ const Cart = () => {
   const navigate = useNavigate();
 
   const decreaseQuantity = (productID) => {
-    updateProductQuantity(productID, 'decrease');
+    const product = cart.find(item => item.id === productID);
+    if (product.quantity > 1) {
+      updateProductQuantity(productID, 'decrease');
+    }
   };
-
+  
   const increaseQuantity = (productID) => {
-    updateProductQuantity(productID, 'increase');
+    const product = cart.find(item => item.id === productID);
+    if (product.quantity < product.stock) { // Ensure it does not exceed stock
+      updateProductQuantity(productID, 'increase');
+    }
   };
-
+  
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
   const totalPrice = cart.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   ).toFixed(2);
-
+  
   const handlePlaceOrder = () => {
     if (cart.length > 0) {
       navigate('/placeorder'); // Navigate to the order placement page
     }
   };
+  
 
   return (
     <div className="container mx-auto p-4">
@@ -68,7 +75,7 @@ const Cart = () => {
                 <button
                   onClick={() => increaseQuantity(item.id)}
                   className="bg-gray-300 text-black px-2 py-1 rounded"
-                  disabled={item.stock <= 0}
+                  disabled={item.quantity >= item.stock}
                 >
                   +
                 </button>
