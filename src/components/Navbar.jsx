@@ -114,7 +114,7 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Right Side - Account, Wishlist, Cart */}
+      {/* Right Side - Account, Wishlist, Orders, Cart */}
       <div className="flex space-x-4">
         {/* Account Link and Dropdown */}
         <div className="relative">
@@ -137,7 +137,7 @@ const Navbar = () => {
                 My Account
               </Link>
               <Link
-                to="/orders"
+                to="/order-status" // Navigate to Order Status page
                 className="p-2 hover:bg-gray-100 cursor-pointer"
                 onClick={closeAccountMenu}
               >
