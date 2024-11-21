@@ -1,21 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from "axios";
 
-// Create CartContext to manage cart and product states globally
+// Create CartContext to manage both cart, products, and authentication states
 const CartContext = createContext();
 
 // Custom hook to easily access CartContext values in components
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);  // Initialize cart as an empty array
-  const [products, setProducts] = useState([  // Sample product data with stock info
+  const backendUrl = 'http://localhost:5001';
+  console.log('Backend URL:', backendUrl);
+
+  // Cart and product states
+  const [cart, setCart] = useState([]);
+  const [products, setProducts] = useState([
     {
       id: 1,
       name: 'Tofu',
       price: 149.9,
       image: '/assets/tofu.png',
       category: 'food',
-      stock: 10, // Stock info for this product
+      stock: 10,
     },
     {
       id: 2,
@@ -23,7 +28,7 @@ export const CartProvider = ({ children }) => {
       price: 699.9,
       image: '/assets/everfreshTofu.png',
       category: 'food',
-      stock: 0, // Out of stock
+      stock: 0,
     },
     {
       id: 3,
@@ -31,16 +36,26 @@ export const CartProvider = ({ children }) => {
       price: 89.9,
       image: '/assets/soap.png',
       category: 'cosmetics',
-      stock: 5, // Stock info
+      stock: 5,
     },
-    // More products can be added here
   ]);
 
-  // Sync cart state with localStorage to persist the cart across page reloads
+  // Authentication states
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+
+  // Sync cart state with localStorage
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem('cart'));
     if (storedCart) {
       setCart(storedCart);
+    }
+
+    const storedToken = localStorage.getItem('accessToken');
+    if (storedToken) {
+      setAccessToken(storedToken);
+      setIsAuthenticated(true);
     }
   }, []);
 
@@ -48,13 +63,60 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Function to update the stock of a product (optional for now)
-  const updateProductStock = (id, newStock) => {
-    setProducts((prevState) =>
-      prevState.map((product) =>
-        product.id === id ? { ...product, stock: newStock } : product
-      )
-    );
+  // Function to handle signup
+  const signup = async (name, email, password, address) => {
+    try {
+      const response = await axios.post(`${backendUrl}/api/users/signup`, {
+        name,
+        email,
+        password,
+        address,
+      });
+
+      if (response.data) {
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Signup failed:', error.response?.data || error.message);
+      return { success: false, error: error.response?.data || error.message };
+    }
+  };
+
+  // Function to handle login
+  const login = async (email, password) => {
+    try {
+      const response = await axios.post(`${backendUrl}/api/users/login`, {
+        email,
+        password,
+      }, { withCredentials: true });
+
+      const { accessToken, user } = response.data;
+      setUser(user);
+      setAccessToken(accessToken);
+      setIsAuthenticated(true);
+
+      // Persist access token
+      localStorage.setItem('accessToken', accessToken);
+      return { success: true };
+    } catch (error) {
+      console.error("Login failed:", error.response?.data || error.message);
+      return { success: false, error: error.response?.data || error.message };
+    }
+  };
+
+  // Function to handle logout
+  const logout = async () => {
+    try {
+      await axios.post(`${backendUrl}/api/users/logout`, {}, { withCredentials: true });
+      setUser(null);
+      setAccessToken(null);
+      setIsAuthenticated(false);
+
+      // Clear token from localStorage
+      localStorage.removeItem('accessToken');
+    } catch (error) {
+      console.error("Logout failed:", error.response?.data || error.message);
+    }
   };
 
   // Function to clear all items from the cart
@@ -66,27 +128,26 @@ export const CartProvider = ({ children }) => {
       alert("Sorry, this product is out of stock.");
       return;
     }
-  
+
     setCart((prevCart) => {
       const updatedCart = [...prevCart];
       const existingProductIndex = updatedCart.findIndex(
         (item) => item.id === product.id
       );
-  
+
       if (existingProductIndex !== -1) {
         updatedCart[existingProductIndex].quantity += product.quantity;
       } else {
         updatedCart.push({ ...product, quantity: product.quantity || 1 });
       }
-  
-      // Update the product stock in the global state
+
       const updatedProducts = products.map((p) =>
         p.id === product.id ? { ...p, stock: p.stock - product.quantity } : p
       );
       setProducts(updatedProducts);
-  
+
       return updatedCart;
-    });  
+    });
   };
 
   // Function to remove a product from the cart
@@ -94,36 +155,38 @@ export const CartProvider = ({ children }) => {
     setCart(cart.filter((item) => item.id !== productId));
   };
 
-  // Function to update the quantity of a product in the cart (increase or decrease)
+  // Function to update the quantity of a product in the cart
   const updateProductQuantity = (productId, action) => {
     setCart(
       cart.map((item) => {
         if (item.id === productId) {
-          // Increase quantity (but not above stock)
           if (action === 'increase' && item.quantity < item.stock) {
             return { ...item, quantity: item.quantity + 1 };
-          } 
-          // Decrease quantity (but not below 1)
-          else if (action === 'decrease' && item.quantity > 1) {
+          } else if (action === 'decrease' && item.quantity > 1) {
             return { ...item, quantity: item.quantity - 1 };
           }
         }
-        return item; // Return other items unchanged
+        return item;
       })
     );
   };
 
-  // Provide the context values (cart, products, and functions) to the components
+  // Provide context values
   return (
     <CartContext.Provider
       value={{
         cart,
-        products, // Share products and stock info globally
+        products,
+        isAuthenticated,
+        user,
+        accessToken,
         addProductToCart,
         removeProductFromCart,
         updateProductQuantity,
-        clearCart, // Provide clearCart function
-        updateProductStock, // Provide stock update function
+        clearCart,
+        login,
+        logout,
+        signup,
       }}
     >
       {children}
