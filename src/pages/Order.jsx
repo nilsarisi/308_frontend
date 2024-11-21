@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext"; // Import context to get order data
 
-const OrderStatus = () => {
+const Order = () => {
   const { cart } = useCart();
   const navigate = useNavigate();
   const [orderStatus, setOrderStatus] = useState("Processing");
   const [estimatedDelivery, setEstimatedDelivery] = useState("");
   const [orderNumber] = useState(Math.floor(Math.random() * 1000000)); // Simulating an order number
 
-  // Simulate status change after some time (You can fetch this data from an API)
+  // Simulate status change after some time 
   useEffect(() => {
     if (orderStatus === "Processing") {
       setTimeout(() => setOrderStatus("Shipped"), 5000); // After 5 seconds, change to "Shipped"
@@ -56,4 +56,4 @@ const OrderStatus = () => {
   );
 };
 
-export default OrderStatus;
+export default Order;
