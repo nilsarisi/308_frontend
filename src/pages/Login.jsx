@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { useCart } from '../contexts/CartContext'; // Import CartContext to access login and signup functions
 
 const LoginSignup = () => {
   const { login, signup } = useCart(); // Access login and signup functions from context
+  const navigate = useNavigate(); // Initialize useNavigate
   const [isLogin, setIsLogin] = useState(true); // Toggle between login and signup
   const [formData, setFormData] = useState({
     name: '',
@@ -36,6 +38,7 @@ const LoginSignup = () => {
         const response = await login(email, password);
         if (response.success) {
           setSuccess('Login successful!');
+          navigate('/'); // Redirect to home page
         } else {
           setError(response.error || 'Error during login');
         }
