@@ -97,7 +97,7 @@ const Product = () => {
             {product.stock > 0 ? "In stock" : "Out of stock"}
           </p>
 
-          {product.stock > 0 && (
+          {product.stock >= 0 && (
             <p className="text-sm text-gray-500 mt-1">Available: {product.stock}</p>
           )}
 

@@ -8,7 +8,7 @@ import productImage3 from '../assets/products/detergent.jpg';
 const Products = () => {
   const [activeCategory, setActiveCategory] = useState('all-products');
   const [sortOption, setSortOption] = useState('default');
-  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [priceRange, setPriceRange] = useState([0, 100000]);
   const [availability, setAvailability] = useState('all');
 
   const handleCategoryClick = (category) => {
@@ -103,16 +103,16 @@ const Products = () => {
         </button>
 
         <h2 className="text-xl font-bold mt-8 mb-4">Filter by Price</h2>
-        <button onClick={() => handlePriceRangeChange([0, 100000])} className={`block w-full text-left py-2 ${priceRange[1] === 100000 ? 'font-bold text-blue-700' : ''}`}>
+        <button onClick={() => handlePriceRangeChange([0, 100000])} className={`block w-full text-left py-2 ${priceRange[0] === 0 && priceRange[1] === 100000 ? 'font-bold text-blue-700' : ''}`}>
           All
         </button>
-        <button onClick={() => handlePriceRangeChange([0, 100])} className={`block w-full text-left py-2 ${priceRange[1] === 100 ? 'font-bold text-blue-700' : ''}`}>
+        <button onClick={() => handlePriceRangeChange([0, 100])} className={`block w-full text-left py-2 ${priceRange[0] === 0 && priceRange[1] === 100 ? 'font-bold text-blue-700' : ''}`}>
           ₺0 - ₺100
         </button>
-        <button onClick={() => handlePriceRangeChange([100, 500])} className={`block w-full text-left py-2 ${priceRange[1] === 500 ? 'font-bold text-blue-700' : ''}`}>
+        <button onClick={() => handlePriceRangeChange([100, 500])} className={`block w-full text-left py-2 ${priceRange[0] === 100 && priceRange[1] === 500 ? 'font-bold text-blue-700' : ''}`}>
           ₺100 - ₺500
         </button>
-        <button onClick={() => handlePriceRangeChange([500, 1000])} className={`block w-full text-left py-2 ${priceRange[1] === 1000 ? 'font-bold text-blue-700' : ''}`}>
+        <button onClick={() => handlePriceRangeChange([500, 1000])} className={`block w-full text-left py-2 ${priceRange[0] === 500 && priceRange[1] === 1000 ? 'font-bold text-blue-700' : ''}`}>
           ₺500 - ₺1000
         </button>
 
@@ -141,8 +141,7 @@ const Products = () => {
                 <p className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
                   {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                 </p>
-                {/* Show available stock quantity if in stock */}
-                {product.stock > 0 && (
+                {product.stock >= 0 && (
                   <p className="text-sm text-gray-500 mt-1">Available: {product.stock}</p>
                 )}
                 <Link to={`/product/${product.id}`}>
