@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // useNavigate for navigation
 import logo from '../assets/logo.png';
 import {
@@ -19,6 +19,7 @@ const Navbar = () => {
   const [filteredProducts, setFilteredProducts] = useState([]); // To store filtered products
   const { cart } = useCart(); // Access cart from context
   const navigate = useNavigate(); // For navigation
+  const searchResultsRef = useRef(null); // Reference for the search results dropdown
 
   // Calculate total number of items in the cart
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
@@ -27,7 +28,7 @@ const Navbar = () => {
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchTerm(query);
-
+  
     // Filter products based on the search term
     const products = [
       { id: 1, name: 'Tofu', price: 149.9, image: logo, category: 'food', stock: 10 },
@@ -35,10 +36,12 @@ const Navbar = () => {
       { id: 3, name: 'Natural Soap', price: 89.9, image: logo, category: 'cosmetics', stock: 5 },
       { id: 4, name: 'Detergent', price: 59.9, image: logo, category: 'cleaning', stock: 3 },
     ];
-
+  
     if (query) {
       const filtered = products.filter((product) =>
-        product.name.toLowerCase().includes(query.toLowerCase())
+        product.name
+          .split(' ') // Split product name into words
+          .some(word => word.toLowerCase().startsWith(query.toLowerCase())) // Check if any word starts with the search term
       );
       setFilteredProducts(filtered);
     } else {
@@ -53,6 +56,7 @@ const Navbar = () => {
     setFilteredProducts([]); // Clear filtered products after selecting
   };
 
+  // Close the account menu
   const closeAccountMenu = () => {
     setAccountMenuVisible(false);
   };
@@ -64,6 +68,19 @@ const Navbar = () => {
   const toggleAccountMenu = () => {
     setAccountMenuVisible(!accountMenuVisible);
   };
+
+  // Click outside the search results to close it
+  const handleClickOutside = (e) => {
+    if (searchResultsRef.current && !searchResultsRef.current.contains(e.target)) {
+      setFilteredProducts([]); // Close the dropdown if clicked outside
+    }
+  };
+
+  // Set up a listener to handle clicks outside the dropdown
+  React.useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <nav className="flex items-center justify-between p-4 bg-green-900 text-white shadow-xl relative">
@@ -85,8 +102,6 @@ const Navbar = () => {
       {/* Center - Search Bar */}
       <div
         className="relative flex items-center gap-2 border rounded-lg p-2 max-w-md shadow-md"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         <AiOutlineSearch className="w-6 h-6 text-gray-300 cursor-pointer" />
         <input
@@ -96,8 +111,11 @@ const Navbar = () => {
           value={searchTerm} // Bind searchTerm to input
           onChange={handleSearchChange} // Handle change
         />
-        {isHovered && searchTerm && filteredProducts.length > 0 && (
-          <div className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-lg mt-2 p-4 z-10">
+        {searchTerm && filteredProducts.length > 0 && (
+          <div
+            ref={searchResultsRef} // Attach the ref to this div
+            className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-lg mt-2 p-4 z-10"
+          >
             <p className="text-gray-600 font-semibold">Search Results:</p>
             <ul className="text-gray-800 mt-2">
               {filteredProducts.map((product) => (
