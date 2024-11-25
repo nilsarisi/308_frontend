@@ -1,42 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import productImage from '../assets/products/tofu.png';
-import productImage1 from '../assets/products/everfreshTofu.png';
-import productImage2 from '../assets/products/soap.png';
-import productImage3 from '../assets/products/detergent.jpg';
 import { useCart } from '../contexts/CartContext';
-//import axios from 'axios'; // For API calls
-// COMMENTED KISIMLAR BACKEND BAĞLANDIKTAN SONRA KULLANILACAK LÜTFEN SİLMEYİN :)
+import axios from 'axios';
+
 const Product = () => {
   const { productID } = useParams();
+  const [product, setProduct] = useState(null); // Holds the fetched product data
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
   const [quantity, setQuantity] = useState(1);
   const { addProductToCart } = useCart();
 
-  // Sample products data
-  const products = [
-    { id: 1, name: 'Tofu', price: 149.9, image: productImage, stock: 10, features: ['Made from soybeans', 'High protein'], ingredients: ['Soybeans', 'Water'] },
-    { id: 2, name: 'Everfresh Tofu 1000gr', price: 699.9, image: productImage1, stock: 0, features: ['Made from soybeans'], ingredients: ['Soybeans', 'Water'] },
-    { id: 3, name: 'Natural Soap', price: 89.9, image: productImage2, stock: 5, features: ['Made from natural ingredients'], ingredients: ['Glycerin', 'Essential oils'] },
-    { id: 4, name: 'Detergent', price: 59.9, image: productImage3, stock: 3, features: ['Effective on grease'], ingredients: ['Water', 'Sodium'] },
-  ];
+  // Fetch product details when component loads
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5001/api/products/${productID}`);
+        setProduct(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch product details');
+        setLoading(false);
+      }
+    };
 
-  const product = products.find((p) => p.id === parseInt(productID));
-
-  // Reviews state
-  //const [reviews, setReviews] = useState([]); // Holds approved reviews
-  ///const [newReview, setNewReview] = useState({ comment: '', rating: 0 }); // User input
-  //const [error, setError] = useState('');
-
-  //useEffect(() => {
-    // Fetch approved reviews for the product
-    //axios.get(`/api/reviews/${productID}`) // Replace with actual endpoint
-     // .then((response) => setReviews(response.data))
-      //.catch((error) => console.error('Error fetching reviews:', error));
- // }, [productID]);
-
-  if (!product) {
-    return <div>Product not found</div>;
-  }
+    fetchProduct();
+  }, [productID]);
 
   const increaseQuantity = () => setQuantity(quantity + 1);
   const decreaseQuantity = () => {
@@ -52,41 +41,33 @@ const Product = () => {
     const quantityToAdd = Math.min(quantity, product.stock);
 
     const productToAdd = {
-      id: product.id,
+      id: product._id, // Using MongoDB _id
       name: product.name,
       price: product.price,
       quantity: quantityToAdd,
-      image: product.image,
+      image: product.imageURL,
     };
 
     addProductToCart(productToAdd);
     alert(`${product.name} added to cart!`);
   };
 
-  //const handleReviewSubmit = () => {
-    //if (newReview.rating < 1 || newReview.rating > 5 || !newReview.comment.trim()) {
-      //setError('Please provide a valid rating (1-5) and a comment.');
-      //return;
-    //}
+  // Show loading state
+  if (loading) {
+    return <div>Loading product details...</div>;
+  }
 
-   // axios.post('/api/reviews', {
-     // productID,
-   //   ...newReview,
-    //}).then(() => {
-     // setError('');
-      //alert('Your review has been submitted for approval.');
-      //setNewReview({ comment: '', rating: 0 });
-    //}).catch((error) => {
-      //console.error('Error submitting review:', error);
-      //setError('Failed to submit the review. Try again.');
-    //});
-  //};
+  // Show error state
+  if (error) {
+    return <div>{error}</div>;
+  }
 
+  // Render product details
   return (
     <div className="container mx-auto p-4">
       <div className="flex">
         <div className="w-1/2">
-          <img src={product.image} alt={product.name} className="w-full" />
+          <img src={product.imageURL} alt={product.name} className="w-full" />
         </div>
         <div className="w-1/2 pl-4">
           <h1 className="text-3xl font-bold">{product.name}</h1>
@@ -155,81 +136,12 @@ const Product = () => {
         </ul>
       </div>
 
-      {/* Reviews Section 
-      <div className="mt-6">
-        <h2 className="text-xl font-bold">Customer Reviews</h2>
-        {reviews.length > 0 ? (
-          <ul className="mt-4">
-            {reviews.map((review, index) => (
-              <li key={index} className="border-b border-gray-200 py-2">
-                <p className="font-bold">{review.rating} ★</p>
-                <p>{review.comment}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No reviews yet. Be the first to review this product!</p>
-        )}
-
-        <div className="mt-6">
-          <h3 className="text-lg font-bold">Leave a Review</h3>
-
-          <textarea
-            className="w-full mt-2 p-2 border rounded"
-            rows="4"
-            placeholder="Write your review here..."
-            value={newReview.comment}
-            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-          />
-
-          <div className="mt-2 flex items-center">
-            <label htmlFor="rating" className="mr-2">Rating:</label>
-            <select
-              id="rating"
-              className="border p-1 rounded"
-              value={newReview.rating}
-              onChange={(e) => setNewReview({ ...newReview, rating: parseInt(e.target.value) })}
-            >
-              <option value="0">Select...</option>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <option key={star} value={star}>{star} Star{star > 1 && 's'}</option>
-              ))}
-            </select>
-          </div>
-
-          {error && <p className="text-red-500 mt-2">{error}</p>}
-
-          <button
-            onClick={handleReviewSubmit}
-            className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-          >
-            Submit Review
-          </button>
-        </div>
-      </div>
-      */}
-
       <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-xl font-bold">Similar Products</h2>
         <div className="flex space-x-4">
-          {products
-            .filter((p) => p.id !== product.id)
-            .map((similarProduct) => (
-              <div key={similarProduct.id} className="border p-2 w-1/4">
-                <img
-                  src={similarProduct.image}
-                  alt={similarProduct.name}
-                  className="w-full"
-                />
-                <p>{similarProduct.name}</p>
-                <p className="text-green-700">₺{similarProduct.price}</p>
-                <Link to={`/product/${similarProduct.id}`} state={{ quantity: similarProduct.stock }}>
-                  <button className="mt-2 bg-blue-500 text-white px-2 py-1 rounded">
-                    View Details
-                  </button>
-                </Link>
-              </div>
-            ))}
+          {/* Show similar products */}
+          {/* For simplicity, filter products with the same category (if available in backend) */}
+          {/* Implementing a separate API call for similar products can improve accuracy */}
         </div>
       </div>
     </div>

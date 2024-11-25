@@ -1,62 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import productImage from '../assets/products/tofu.png';
-import productImage1 from '../assets/products/everfreshTofu.png';
-import productImage2 from '../assets/products/soap.png';
-import productImage3 from '../assets/products/detergent.jpg';
+import axios from 'axios';
 
 const Products = () => {
+  const [products, setProducts] = useState([]); // Backend data
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all-products');
   const [sortOption, setSortOption] = useState('default');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [availability, setAvailability] = useState('all');
 
+  // Fetch products from the backend
+  useEffect(() => {
+    axios
+      .get('http://localhost:5001/api/products') // Replace with your actual API endpoint
+      .then((response) => {
+        setProducts(response.data);
+        setFilteredProducts(response.data); // Initial filtering
+      })
+      .catch((error) => console.error('Error fetching products:', error));
+  }, []);
+
+  // Filter products based on category
   const handleCategoryClick = (category) => {
     setActiveCategory(category);
   };
 
-  const handleSortChange = (sort) => {
-    setSortOption(sort);
-  };
+  // Update filtered products when filters change
+  useEffect(() => {
+    let updatedProducts = [...products];
 
-  const handlePriceRangeChange = (range) => {
-    setPriceRange(range);
-  };
+    // Filter by category
+    if (activeCategory !== 'all-products') {
+      updatedProducts = updatedProducts.filter(
+        (product) => product.category === activeCategory
+      );
+    }
 
-  const handleAvailabilityChange = (status) => {
-    setAvailability(status);
-  };
+    // Filter by price range
+    updatedProducts = updatedProducts.filter(
+      (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
+    );
 
-  const products = [
-    { id: 1, name: 'Tofu', price: 149.9, image: productImage, category: 'food', stock: 10 },
-    { id: 2, name: 'Everfresh Tofu 1000gr', price: 699.9, image: productImage1, category: 'food', stock: 0 },
-    { id: 3, name: 'Natural Soap', price: 89.9, image: productImage2, category: 'cosmetics', stock: 5 },
-    { id: 4, name: 'Detergent', price: 59.9, image: productImage3, category: 'cleaning', stock: 3 },
-  ];
+    // Filter by availability
+    if (availability !== 'all') {
+      const isAvailable = availability === 'in-stock';
+      updatedProducts = updatedProducts.filter(
+        (product) => (product.stock > 0) === isAvailable
+      );
+    }
 
-  // Filter products based on category
-  const filteredByCategory = activeCategory === 'all-products'
-    ? products
-    : products.filter((product) => product.category === activeCategory);
+    // Sort products
+    if (sortOption === 'price-low-high') {
+      updatedProducts.sort((a, b) => a.price - b.price);
+    } else if (sortOption === 'price-high-low') {
+      updatedProducts.sort((a, b) => b.price - a.price);
+    } else if (sortOption === 'name-asc') {
+      updatedProducts.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortOption === 'name-desc') {
+      updatedProducts.sort((a, b) => b.name.localeCompare(a.name));
+    }
 
-  // Filter products based on price range
-  const filteredByPrice = filteredByCategory.filter(
-    (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
-  );
-
-  // Filter products based on availability
-  const filteredByAvailability = availability === 'all'
-    ? filteredByPrice
-    : filteredByPrice.filter((product) => product.stock > 0 === (availability === 'in-stock'));
-
-  // Sort products based on selected option
-  const sortedProducts = [...filteredByAvailability].sort((a, b) => {
-    if (sortOption === 'price-low-high') return a.price - b.price;
-    if (sortOption === 'price-high-low') return b.price - a.price;
-    if (sortOption === 'name-asc') return a.name.localeCompare(b.name);
-    if (sortOption === 'name-desc') return b.name.localeCompare(a.name);
-    return 0;
-  });
+    setFilteredProducts(updatedProducts);
+  }, [activeCategory, priceRange, availability, sortOption, products]);
 
   return (
     <div className="container mx-auto flex">
@@ -65,65 +71,128 @@ const Products = () => {
         <h2 className="text-xl font-bold mb-4">Filter by Category</h2>
         <button
           onClick={() => handleCategoryClick('all-products')}
-          className={`block w-full text-left py-2 ${activeCategory === 'all-products' ? 'font-bold' : ''}`}
+          className={`block w-full text-left py-2 ${
+            activeCategory === 'all-products' ? 'font-bold' : ''
+          }`}
         >
           All Products
         </button>
         <button
           onClick={() => handleCategoryClick('food')}
-          className={`block w-full text-left py-2 ${activeCategory === 'food' ? 'font-bold' : ''}`}
+          className={`block w-full text-left py-2 ${
+            activeCategory === 'food' ? 'font-bold' : ''
+          }`}
         >
           Food
         </button>
         <button
           onClick={() => handleCategoryClick('cosmetics')}
-          className={`block w-full text-left py-2 ${activeCategory === 'cosmetics' ? 'font-bold' : ''}`}
+          className={`block w-full text-left py-2 ${
+            activeCategory === 'cosmetics' ? 'font-bold' : ''
+          }`}
         >
           Cosmetics
         </button>
         <button
           onClick={() => handleCategoryClick('cleaning')}
-          className={`block w-full text-left py-2 ${activeCategory === 'cleaning' ? 'font-bold' : ''}`}
+          className={`block w-full text-left py-2 ${
+            activeCategory === 'cleaning' ? 'font-bold' : ''
+          }`}
         >
           Cleaning
         </button>
 
         <h2 className="text-xl font-bold mt-8 mb-4">Sort By</h2>
-        <button onClick={() => handleSortChange('price-low-high')} className={`block w-full text-left py-2 ${sortOption === 'price-low-high' ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setSortOption('price-low-high')}
+          className={`block w-full text-left py-2 ${
+            sortOption === 'price-low-high' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           Price: Low to High
         </button>
-        <button onClick={() => handleSortChange('price-high-low')} className={`block w-full text-left py-2 ${sortOption === 'price-high-low' ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setSortOption('price-high-low')}
+          className={`block w-full text-left py-2 ${
+            sortOption === 'price-high-low' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           Price: High to Low
         </button>
-        <button onClick={() => handleSortChange('name-asc')} className={`block w-full text-left py-2 ${sortOption === 'name-asc' ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setSortOption('name-asc')}
+          className={`block w-full text-left py-2 ${
+            sortOption === 'name-asc' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           Name: A to Z
         </button>
-        <button onClick={() => handleSortChange('name-desc')} className={`block w-full text-left py-2 ${sortOption === 'name-desc' ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setSortOption('name-desc')}
+          className={`block w-full text-left py-2 ${
+            sortOption === 'name-desc' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           Name: Z to A
         </button>
 
         <h2 className="text-xl font-bold mt-8 mb-4">Filter by Price</h2>
-        <button onClick={() => handlePriceRangeChange([0, 100000])} className={`block w-full text-left py-2 ${priceRange[1] === 100000 ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setPriceRange([0, 100000])}
+          className={`block w-full text-left py-2 ${
+            priceRange[1] === 100000 ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           All
         </button>
-        <button onClick={() => handlePriceRangeChange([0, 100])} className={`block w-full text-left py-2 ${priceRange[1] === 100 ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setPriceRange([0, 100])}
+          className={`block w-full text-left py-2 ${
+            priceRange[1] === 100 ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           ₺0 - ₺100
         </button>
-        <button onClick={() => handlePriceRangeChange([100, 500])} className={`block w-full text-left py-2 ${priceRange[1] === 500 ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setPriceRange([100, 500])}
+          className={`block w-full text-left py-2 ${
+            priceRange[1] === 500 ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           ₺100 - ₺500
         </button>
-        <button onClick={() => handlePriceRangeChange([500, 1000])} className={`block w-full text-left py-2 ${priceRange[1] === 1000 ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setPriceRange([500, 1000])}
+          className={`block w-full text-left py-2 ${
+            priceRange[1] === 1000 ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           ₺500 - ₺1000
         </button>
 
         <h2 className="text-xl font-bold mt-8 mb-4">Availability</h2>
-        <button onClick={() => handleAvailabilityChange('all')} className={`block w-full text-left py-2 ${availability === 'all' ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setAvailability('all')}
+          className={`block w-full text-left py-2 ${
+            availability === 'all' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           All
         </button>
-        <button onClick={() => handleAvailabilityChange('in-stock')} className={`block w-full text-left py-2 ${availability === 'in-stock' ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setAvailability('in-stock')}
+          className={`block w-full text-left py-2 ${
+            availability === 'in-stock' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           In Stock
         </button>
-        <button onClick={() => handleAvailabilityChange('out-of-stock')} className={`block w-full text-left py-2 ${availability === 'out-of-stock' ? 'font-bold text-blue-700' : ''}`}>
+        <button
+          onClick={() => setAvailability('out-of-stock')}
+          className={`block w-full text-left py-2 ${
+            availability === 'out-of-stock' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
           Out of Stock
         </button>
       </div>
@@ -132,20 +201,19 @@ const Products = () => {
       <div className="w-3/4 p-4">
         <h1 className="text-3xl font-bold mb-4">Products</h1>
         <div className="grid grid-cols-3 gap-4">
-          {sortedProducts.length > 0 ? (
-            sortedProducts.map((product) => (
-              <div key={product.id} className="border p-4">
-                <img src={product.image} alt={product.name} className="w-full" />
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => (
+              <div key={product._id} className="border p-4">
+                <img src={product.imageURL} alt={product.name} className="w-full" />
                 <p className="font-bold">{product.name}</p>
                 <p className="text-green-700">₺{product.price}</p>
                 <p className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
                   {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                 </p>
-                {/* Show available stock quantity if in stock */}
                 {product.stock > 0 && (
                   <p className="text-sm text-gray-500 mt-1">Available: {product.stock}</p>
                 )}
-                <Link to={`/product/${product.id}`}>
+                <Link to={`/product/${product._id}`}>
                   <button className="mt-2 bg-blue-500 text-white px-2 py-1 rounded">
                     View Details
                   </button>
