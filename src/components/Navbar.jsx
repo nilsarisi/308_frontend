@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // useNavigate for navigation
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import {
   AiOutlineUser,
@@ -9,7 +9,8 @@ import {
   AiOutlineMenu,
   AiOutlineClose,
 } from 'react-icons/ai';
-import { useCart } from '../contexts/CartContext'; // Import useCart
+import { useCart } from '../contexts/CartContext';
+import axios from 'axios';
 
 const Navbar = () => {
   const [isHovered, setIsHovered] = useState(false);
@@ -17,13 +18,25 @@ const Navbar = () => {
   const [accountMenuVisible, setAccountMenuVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState(''); // New state for search term
   const [filteredProducts, setFilteredProducts] = useState([]); // To store filtered products
-  const { cart ,isAuthenticated, logout} = useCart(); // Access cart from context
+  const [allProducts, setAllProducts] = useState([]); // Store all products from the database
+  const { cart, isAuthenticated, logout } = useCart(); // Access cart from context
   const navigate = useNavigate(); // For navigation
-  
-  const handleLogout = () => {
-    logout(); // Calls logout from context
-};
+
   const searchResultsRef = useRef(null); // Reference for the search results dropdown
+
+  // Fetch all products from the backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/api/products'); // Replace with your API endpoint
+        setAllProducts(response.data); // Save products to state
+      } catch (err) {
+        console.error('Failed to fetch products:', err.message);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Calculate total number of items in the cart
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
@@ -32,20 +45,14 @@ const Navbar = () => {
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchTerm(query);
-  
-    // Filter products based on the search term
-    const products = [
-      { id: 1, name: 'Tofu', price: 149.9, image: logo, category: 'food', stock: 10 },
-      { id: 2, name: 'Everfresh Tofu 1000gr', price: 699.9, image: logo, category: 'food', stock: 0 },
-      { id: 3, name: 'Natural Soap', price: 89.9, image: logo, category: 'cosmetics', stock: 5 },
-      { id: 4, name: 'Detergent', price: 59.9, image: logo, category: 'cleaning', stock: 3 },
-    ];
-  
+
     if (query) {
-      const filtered = products.filter((product) =>
+      const filtered = allProducts.filter((product) =>
         product.name
           .split(' ') // Split product name into words
-          .some(word => word.toLowerCase().startsWith(query.toLowerCase())) // Check if any word starts with the search term
+          .some((word) =>
+            word.toLowerCase().startsWith(query.toLowerCase())
+          ) // Check if any word starts with the search term
       );
       setFilteredProducts(filtered);
     } else {
@@ -58,11 +65,6 @@ const Navbar = () => {
     navigate(`/product/${productId}`);
     setSearchTerm(''); // Clear search term after selecting
     setFilteredProducts([]); // Clear filtered products after selecting
-  };
-
-  // Close the account menu
-  const closeAccountMenu = () => {
-    setAccountMenuVisible(false);
   };
 
   const handleMenuToggle = () => {
@@ -81,7 +83,7 @@ const Navbar = () => {
   };
 
   // Set up a listener to handle clicks outside the dropdown
-  React.useEffect(() => {
+  useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -124,9 +126,9 @@ const Navbar = () => {
             <ul className="text-gray-800 mt-2">
               {filteredProducts.map((product) => (
                 <li
-                  key={product.id}
+                  key={product._id}
                   className="hover:bg-gray-200 p-2 cursor-pointer"
-                  onClick={() => handleProductClick(product.id)} // Navigate to product page
+                  onClick={() => handleProductClick(product._id)} // Navigate to product page
                 >
                   {product.name}
                 </li>
@@ -154,30 +156,21 @@ const Navbar = () => {
               <Link
                 to="/my-account"
                 className="p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={closeAccountMenu}
               >
                 My Account
               </Link>
               <Link
-                to="/order-status" // Navigate to Order Status page
+                to="/order-status"
                 className="p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={closeAccountMenu}
               >
                 Orders
               </Link>
               <button
-                onClick={handleLogout}
+                onClick={logout}
                 className="p-2 hover:bg-gray-100 cursor-pointer"
               >
                 Logout
               </button>
-              <Link
-                to="/login"
-                className="block px-4 py-2 hover:bg-gray-200"
-                onClick={closeAccountMenu}
-              >
-                Login
-              </Link>
             </div>
           )}
         </div>

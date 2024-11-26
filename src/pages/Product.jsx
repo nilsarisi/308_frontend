@@ -6,17 +6,24 @@ import axios from 'axios';
 const Product = () => {
   const { productID } = useParams();
   const [product, setProduct] = useState(null); // Holds the fetched product data
+  const [products, setProducts] = useState([]); // Holds all products
   const [loading, setLoading] = useState(true); // Loading state
   const [error, setError] = useState(null); // Error state
   const [quantity, setQuantity] = useState(1);
   const { addProductToCart } = useCart();
 
-  // Fetch product details when component loads
+  // Fetch product details and all products when component loads
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndProducts = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/products/${productID}`);
-        setProduct(response.data);
+        // Fetch the specific product
+        const productResponse = await axios.get(`http://localhost:5001/api/products/${productID}`);
+        setProduct(productResponse.data);
+
+        // Fetch all products
+        const allProductsResponse = await axios.get(`http://localhost:5001/api/products`);
+        setProducts(allProductsResponse.data);
+
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch product details');
@@ -24,7 +31,7 @@ const Product = () => {
       }
     };
 
-    fetchProduct();
+    fetchProductAndProducts();
   }, [productID]);
 
   const increaseQuantity = () => setQuantity(quantity + 1);
@@ -139,9 +146,36 @@ const Product = () => {
       <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-xl font-bold">Similar Products</h2>
         <div className="flex space-x-4">
-          {/* Show similar products */}
-          {/* For simplicity, filter products with the same category (if available in backend) */}
-          {/* Implementing a separate API call for similar products can improve accuracy */}
+          {product && Array.isArray(products) && products.length > 0 ? (
+            products
+              .filter(
+                (p) =>
+                  p._id !== product._id && // Exclude the current product
+                  p.category === product.category && // Same category
+                  Math.abs(p.price - product.price) <= 20 // Within ±20 price range
+              )
+              .sort(() => Math.random() - 0.5) // Shuffle to randomize the products
+              .slice(0, 4) // Pick up to 4 products
+              .map((similarProduct) => (
+                <div key={similarProduct._id} className="border p-4 rounded-lg shadow-md">
+                  <img
+                    src={similarProduct.imageURL}
+                    alt={similarProduct.name}
+                    className="w-full h-40 object-cover mb-4"
+                  />
+                  <h3 className="text-lg font-bold">{similarProduct.name}</h3>
+                  <p className="text-green-700">₺{similarProduct.price}</p>
+                  <Link
+                    to={`/product/${similarProduct._id}`}
+                    className="text-blue-500 mt-2 inline-block"
+                  >
+                    View Product
+                  </Link>
+                </div>
+              ))
+          ) : (
+            <p className="text-gray-500">No similar products found.</p>
+          )}
         </div>
       </div>
 
