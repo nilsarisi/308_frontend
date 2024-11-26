@@ -17,8 +17,12 @@ const Navbar = () => {
   const [accountMenuVisible, setAccountMenuVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState(''); // New state for search term
   const [filteredProducts, setFilteredProducts] = useState([]); // To store filtered products
-  const { cart } = useCart(); // Access cart from context
+  const { cart ,isAuthenticated, logout} = useCart(); // Access cart from context
   const navigate = useNavigate(); // For navigation
+  
+  const handleLogout = () => {
+    logout(); // Calls logout from context
+};
   const searchResultsRef = useRef(null); // Reference for the search results dropdown
 
   // Calculate total number of items in the cart
@@ -162,10 +166,7 @@ const Navbar = () => {
                 Orders
               </Link>
               <button
-                onClick={() => {
-                  /* handle logout */
-                  closeAccountMenu();
-                }}
+                onClick={handleLogout}
                 className="p-2 hover:bg-gray-100 cursor-pointer"
               >
                 Logout
