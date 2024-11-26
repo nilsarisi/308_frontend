@@ -12,6 +12,10 @@ const Product = () => {
   const [quantity, setQuantity] = useState(1);
   const { addProductToCart } = useCart();
 
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [newRating, setNewRating] = useState(0);
+
   // Fetch product details and all products when component loads
   useEffect(() => {
     const fetchProductAndProducts = async () => {
@@ -23,6 +27,10 @@ const Product = () => {
         // Fetch all products
         const allProductsResponse = await axios.get(`http://localhost:5001/api/products`);
         setProducts(allProductsResponse.data);
+
+        // Fetch comments
+        const commentsResponse = await axios.get(`http://localhost:5001/api/products/${productID}/feedback`);
+        setComments(commentsResponse.data);
 
         setLoading(false);
       } catch (err) {
@@ -57,6 +65,24 @@ const Product = () => {
 
     addProductToCart(productToAdd);
     alert(`${product.name} added to cart!`);
+  };
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    console.log('Submitting comment:', newComment, newRating);
+    try {
+      const response = await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
+        userId: 'UserId', // I don't know how to get the user ID yet
+        text: newComment,
+        rating: newRating,
+      });
+      console.log('Comment submitted successfully:', response.data);
+      setComments([...comments, response.data]);
+      setNewComment('');
+      setNewRating(0);
+    } catch (err) {
+      console.error('Failed to post comment', err);
+    }
   };
 
   // Show loading state
@@ -179,10 +205,47 @@ const Product = () => {
         </div>
       </div>
 
-      {/* Static Comments and Star Reviews Section */}
+      {/* Comments and Star Reviews Section */}
       <div className="mt-8 p-4 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-xl font-bold">Comments & Ratings</h2>
-        <p className="text-gray-500 mt-2">No comments or ratings yet. Be the first to share your thoughts!</p>
+        {comments.length > 0 ? (
+          comments.map((comment) => (
+            <div key={comment._id} className="mt-4">
+              <p><strong>Rating:</strong> {comment.rating}</p>
+              <p>{comment.text}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500 mt-2">No comments or ratings yet. Be the first to share your thoughts!</p>
+        )}
+        
+        {/* Comment Form */}
+        <form onSubmit={handleCommentSubmit} className="mt-4">
+          <div>
+            <label htmlFor="rating" className="block text-sm font-medium text-gray-700">Rating</label>
+            <input
+              type="number"
+              id="rating"
+              value={newRating}
+              onChange={(e) => setNewRating(e.target.value)}
+              min="1"
+              max="5"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <div className="mt-4">
+            <label htmlFor="comment" className="block text-sm font-medium text-gray-700">Comment</label>
+            <textarea
+              id="comment"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <button type="submit" className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+        </form>
       </div>
     </div>
   );
