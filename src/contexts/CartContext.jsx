@@ -169,6 +169,33 @@ export const CartProvider = ({ children }) => {
             setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
         }
     };
+    const updateProductQuantity = async (productId, action) => {
+        if (isAuthenticated) {
+            try {
+                const response = await axios.patch(
+                    `${backendUrl}/api/cart/update`,
+                    { productId, action },
+                    { headers: { Authorization: `Bearer ${accessToken}` } }
+                );
+                setCart(response.data.items);
+            } catch (error) {
+                console.error("Failed to update product quantity:", error.response?.data || error.message);
+            }
+        } else {
+            setCart((prevCart) =>
+                prevCart.map((item) => {
+                    if (item.id === productId) {
+                        if (action === 'increase' && item.quantity < item.stock) {
+                            return { ...item, quantity: item.quantity + 1 };
+                        } else if (action === 'decrease' && item.quantity > 1) {
+                            return { ...item, quantity: item.quantity - 1 };
+                        }
+                    }
+                    return item;
+                })
+            );
+        }
+    };
 
     // Function to clear cart
     const clearCart = async () => {
@@ -197,6 +224,7 @@ export const CartProvider = ({ children }) => {
                 accessToken,
                 addProductToCart,
                 removeProductFromCart,
+                updateProductQuantity,
                 clearCart,
                 login,
                 logout,

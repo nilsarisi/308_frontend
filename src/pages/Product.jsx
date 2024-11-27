@@ -79,7 +79,7 @@ const Product = () => {
     const quantityToAdd = Math.min(quantity, product.stock);
 
     const productToAdd = {
-      id: product.id,
+      id: product._id,
       name: product.name,
       price: product.price,
       quantity: quantityToAdd,
@@ -141,35 +141,40 @@ const Product = () => {
         </div>
       </div>
 
+      {/* Similar Products */}
       <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-xl font-bold">Similar Products</h2>
         <div className="flex space-x-4">
-          {products
-            .filter(
-              (p) =>
-                p._id !== product._id &&
-                p.category === product.category &&
-                Math.abs(p.price - product.price) <= 20
-            )
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 4)
-            .map((similarProduct) => (
-              <div key={similarProduct._id} className="border p-4 rounded-lg shadow-md">
-                <img
-                  src={similarProduct.imageURL}
-                  alt={similarProduct.name}
-                  className="w-full h-40 object-cover mb-4"
-                />
-                <h3 className="text-lg font-bold">{similarProduct.name}</h3>
-                <p className="text-green-700">₺{similarProduct.price}</p>
-                <Link
-                  to={`/product/${similarProduct._id}`}
-                  className="text-blue-500 mt-2 inline-block"
-                >
-                  View Product
-                </Link>
-              </div>
-            ))}
+          {product && Array.isArray(products) && products.length > 0 ? (
+            products
+              .filter(
+                (p) =>
+                  p._id !== product._id && // Exclude the current product
+                  p.category === product.category && // Same category
+                  Math.abs(p.price - product.price) <= 20 // Within ±20 price range
+              )
+              .sort(() => Math.random() - 0.5) // Shuffle to randomize the products
+              .slice(0, 4) // Pick up to 4 products
+              .map((similarProduct) => (
+                <div key={similarProduct._id} className="border p-4 rounded-lg shadow-md">
+                  <img
+                    src={similarProduct.imageURL}
+                    alt={similarProduct.name}
+                    className="w-full h-40 object-cover mb-4"
+                  />
+                  <h3 className="text-lg font-bold">{similarProduct.name}</h3>
+                  <p className="text-green-700">₺{similarProduct.price}</p>
+                  <Link
+                    to={`/product/${similarProduct._id}`}
+                    className="text-blue-500 mt-2 inline-block"
+                  >
+                    View Product
+                  </Link>
+                </div>
+              ))
+          ) : (
+            <p className="text-gray-500">No similar products found.</p>
+          )}
         </div>
       </div>
 
