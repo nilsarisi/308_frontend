@@ -22,12 +22,13 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const searchResultsRef = useRef(null);
+  const accountMenuRef = useRef(null); // Ref for the account dropdown
 
   // Fetch all products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/products'); // Replace with your API endpoint
+        const response = await axios.get('http://localhost:5001/api/products');
         setAllProducts(response.data);
       } catch (err) {
         console.error('Failed to fetch products:', err.message);
@@ -62,7 +63,23 @@ const Navbar = () => {
   };
 
   const handleMenuToggle = () => setMenuVisible(!menuVisible);
+
   const toggleAccountMenu = () => setAccountMenuVisible(!accountMenuVisible);
+
+  // Close the account menu if clicked outside
+  const handleClickOutside = (e) => {
+    if (
+      accountMenuRef.current &&
+      !accountMenuRef.current.contains(e.target)
+    ) {
+      setAccountMenuVisible(false); // Close the dropdown if clicked outside
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -115,7 +132,7 @@ const Navbar = () => {
       {/* Right Side - Account, Wishlist, Cart */}
       <div className="flex space-x-4">
         {/* Account Link and Dropdown */}
-        <div className="relative">
+        <div className="relative" ref={accountMenuRef}>
           <button
             onClick={toggleAccountMenu}
             className="flex items-center space-x-1 hover:text-blue-300"
@@ -189,9 +206,8 @@ const Navbar = () => {
           )}
         </Link>
       </div>
-
-      {/* Slide-Out Menu */}
-      <div
+            {/* Slide-Out Menu */}
+            <div
         className={`fixed top-0 left-0 h-full w-64 bg-yellow-100 shadow-lg z-30 transform ${
           menuVisible ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 ease-in-out`}
@@ -253,3 +269,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

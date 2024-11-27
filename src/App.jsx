@@ -16,6 +16,7 @@ import { CartProvider } from './contexts/CartContext';
 import './index.css';
 import OrderSuccess from './pages/OrderSuccess';
 import OrderStatus from "./pages/OrderStatus"; 
+import Account from "./pages/Account"; 
 
 const App = () => {
   return (
@@ -33,6 +34,7 @@ const App = () => {
         <Route path="/placeorder" element={<PlaceOrder />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/order-status" element={<OrderStatus />} />
+        <Route path="/my-account" element={<Account />} />
 
         {/* Products Route */}
         <Route path="/products" element={<Products />} />

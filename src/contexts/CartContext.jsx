@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Ensure you are importing jwtDecode correctly
 
 // Create CartContext
 const CartContext = createContext();
@@ -31,30 +32,19 @@ export const CartProvider = ({ children }) => {
         fetchProducts();
     }, []);
 
-    // Sync cart state with localStorage or backend
+    // Sync authentication state with localStorage
     useEffect(() => {
-        const fetchCart = async () => {
-            try {
-                const response = await axios.get(`${backendUrl}/api/cart/view`, {
-                    headers: { Authorization: `Bearer ${accessToken}` },
-                });
-                setCart(response.data.items);
-            } catch (error) {
-                console.error("Failed to fetch cart:", error.response?.data || error.message);
-            }
-        };
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        const storedAccessToken = localStorage.getItem('accessToken');
 
-        if (isAuthenticated && accessToken) {
-            fetchCart();
-        } else {
-            const storedCart = JSON.parse(localStorage.getItem('cart'));
-            if (storedCart) {
-                setCart(storedCart);
-            }
+        if (storedUser && storedAccessToken) {
+            setUser(storedUser);
+            setAccessToken(storedAccessToken);
+            setIsAuthenticated(true);
         }
-    }, [isAuthenticated, accessToken]);
+    }, []);
 
-    // Save cart to localStorage
+    // Save cart to localStorage for unauthenticated users
     useEffect(() => {
         if (!isAuthenticated) {
             localStorage.setItem('cart', JSON.stringify(cart));
@@ -89,12 +79,22 @@ export const CartProvider = ({ children }) => {
             }, { withCredentials: true });
 
             const { accessToken, user } = response.data;
-            setUser(user);
+
+            // Decode the accessToken to get the user ID and other details
+            const decodedToken = jwtDecode(accessToken); // Use jwtDecode to decode the token
+            const userId = decodedToken.id; // Extract the ID from the token
+
+            // Add the ID to the user object
+            const completeUser = { ...user, id: userId };
+
+            setUser(completeUser); // Save the user with the ID
             setAccessToken(accessToken);
             setIsAuthenticated(true);
 
-            // Persist access token
+            // Persist user and access token
+            localStorage.setItem('user', JSON.stringify(completeUser));
             localStorage.setItem('accessToken', accessToken);
+
             return { success: true };
         } catch (error) {
             console.error("Login failed:", error.response?.data || error.message);
@@ -110,7 +110,8 @@ export const CartProvider = ({ children }) => {
             setAccessToken(null);
             setIsAuthenticated(false);
 
-            // Clear token from localStorage
+            // Clear data from localStorage
+            localStorage.removeItem('user');
             localStorage.removeItem('accessToken');
         } catch (error) {
             console.error("Logout failed:", error.response?.data || error.message);
@@ -169,35 +170,6 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Function to update product quantity in cart
-    const updateProductQuantity = async (productId, action) => {
-        if (isAuthenticated) {
-            try {
-                const response = await axios.patch(
-                    `${backendUrl}/api/cart/update`,
-                    { productId, action },
-                    { headers: { Authorization: `Bearer ${accessToken}` } }
-                );
-                setCart(response.data.items);
-            } catch (error) {
-                console.error("Failed to update product quantity:", error.response?.data || error.message);
-            }
-        } else {
-            setCart((prevCart) =>
-                prevCart.map((item) => {
-                    if (item.id === productId) {
-                        if (action === 'increase' && item.quantity < item.stock) {
-                            return { ...item, quantity: item.quantity + 1 };
-                        } else if (action === 'decrease' && item.quantity > 1) {
-                            return { ...item, quantity: item.quantity - 1 };
-                        }
-                    }
-                    return item;
-                })
-            );
-        }
-    };
-
     // Function to clear cart
     const clearCart = async () => {
         if (isAuthenticated) {
@@ -225,7 +197,6 @@ export const CartProvider = ({ children }) => {
                 accessToken,
                 addProductToCart,
                 removeProductFromCart,
-                updateProductQuantity,
                 clearCart,
                 login,
                 logout,
