@@ -13,23 +13,22 @@ import { useCart } from '../contexts/CartContext';
 import axios from 'axios';
 
 const Navbar = () => {
-  const [isHovered, setIsHovered] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [accountMenuVisible, setAccountMenuVisible] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(''); // New state for search term
-  const [filteredProducts, setFilteredProducts] = useState([]); // To store filtered products
-  const [allProducts, setAllProducts] = useState([]); // Store all products from the database
-  const { cart, isAuthenticated, logout } = useCart(); // Access cart from context
-  const navigate = useNavigate(); // For navigation
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const { cart, isAuthenticated, logout } = useCart(); // Get isAuthenticated and logout
+  const navigate = useNavigate();
 
-  const searchResultsRef = useRef(null); // Reference for the search results dropdown
+  const searchResultsRef = useRef(null);
 
-  // Fetch all products from the backend
+  // Fetch all products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get('http://localhost:5001/api/products'); // Replace with your API endpoint
-        setAllProducts(response.data); // Save products to state
+        setAllProducts(response.data);
       } catch (err) {
         console.error('Failed to fetch products:', err.message);
       }
@@ -38,10 +37,8 @@ const Navbar = () => {
     fetchProducts();
   }, []);
 
-  // Calculate total number of items in the cart
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
-  // Handle search input
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchTerm(query);
@@ -49,10 +46,8 @@ const Navbar = () => {
     if (query) {
       const filtered = allProducts.filter((product) =>
         product.name
-          .split(' ') // Split product name into words
-          .some((word) =>
-            word.toLowerCase().startsWith(query.toLowerCase())
-          ) // Check if any word starts with the search term
+          .split(' ')
+          .some((word) => word.toLowerCase().startsWith(query.toLowerCase()))
       );
       setFilteredProducts(filtered);
     } else {
@@ -60,66 +55,45 @@ const Navbar = () => {
     }
   };
 
-  // Handle search result click to navigate to product detail page
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
-    setSearchTerm(''); // Clear search term after selecting
-    setFilteredProducts([]); // Clear filtered products after selecting
+    setSearchTerm('');
+    setFilteredProducts([]);
   };
 
-  const handleMenuToggle = () => {
-    setMenuVisible(!menuVisible);
-  };
+  const handleMenuToggle = () => setMenuVisible(!menuVisible);
+  const toggleAccountMenu = () => setAccountMenuVisible(!accountMenuVisible);
 
-  const toggleAccountMenu = () => {
-    setAccountMenuVisible(!accountMenuVisible);
+  const handleLogout = () => {
+    logout();
+    navigate('/'); // Redirect to the home page after logout
   };
-
-  // Click outside the search results to close it
-  const handleClickOutside = (e) => {
-    if (searchResultsRef.current && !searchResultsRef.current.contains(e.target)) {
-      setFilteredProducts([]); // Close the dropdown if clicked outside
-    }
-  };
-
-  // Set up a listener to handle clicks outside the dropdown
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   return (
     <nav className="flex items-center justify-between p-4 bg-green-900 text-white shadow-xl relative">
       {/* Left Side - Logo and Title */}
       <div className="flex items-center space-x-3">
-        {/* Menu Icon */}
         <AiOutlineMenu
           onClick={handleMenuToggle}
           className="w-6 h-6 cursor-pointer"
         />
-
-        {/* Logo */}
         <img src={logo} alt="Logo" className="w-14 h-16" />
-
-        {/* Title */}
         <h1 className="font-luckiest-guy text-4xl">Vegan Eats</h1>
       </div>
 
       {/* Center - Search Bar */}
-      <div
-        className="relative flex items-center gap-2 border rounded-lg p-2 max-w-md shadow-md"
-      >
+      <div className="relative flex items-center gap-2 border rounded-lg p-2 max-w-md shadow-md">
         <AiOutlineSearch className="w-6 h-6 text-gray-300 cursor-pointer" />
         <input
           type="text"
           placeholder="Search an item"
           className="w-full outline-none bg-transparent text-white"
-          value={searchTerm} // Bind searchTerm to input
-          onChange={handleSearchChange} // Handle change
+          value={searchTerm}
+          onChange={handleSearchChange}
         />
         {searchTerm && filteredProducts.length > 0 && (
           <div
-            ref={searchResultsRef} // Attach the ref to this div
+            ref={searchResultsRef}
             className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-lg mt-2 p-4 z-10"
           >
             <p className="text-gray-600 font-semibold">Search Results:</p>
@@ -128,7 +102,7 @@ const Navbar = () => {
                 <li
                   key={product._id}
                   className="hover:bg-gray-200 p-2 cursor-pointer"
-                  onClick={() => handleProductClick(product._id)} // Navigate to product page
+                  onClick={() => handleProductClick(product._id)}
                 >
                   {product.name}
                 </li>
@@ -138,7 +112,7 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Right Side - Account, Wishlist, Orders, Cart */}
+      {/* Right Side - Account, Wishlist, Cart */}
       <div className="flex space-x-4">
         {/* Account Link and Dropdown */}
         <div className="relative">
@@ -153,24 +127,43 @@ const Navbar = () => {
           {/* Dropdown Menu */}
           {accountMenuVisible && (
             <div className="flex flex-col absolute right-0 mt-2 bg-white border rounded-lg shadow-lg p-4 text-black z-10">
-              <Link
-                to="/my-account"
-                className="p-2 hover:bg-gray-100 cursor-pointer"
-              >
-                My Account
-              </Link>
-              <Link
-                to="/order-status"
-                className="p-2 hover:bg-gray-100 cursor-pointer"
-              >
-                Orders
-              </Link>
-              <button
-                onClick={logout}
-                className="p-2 hover:bg-gray-100 cursor-pointer"
-              >
-                Logout
-              </button>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/my-account"
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    My Account
+                  </Link>
+                  <Link
+                    to="/order-status"
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Orders
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -203,12 +196,10 @@ const Navbar = () => {
           menuVisible ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 ease-in-out`}
       >
-        {/* Close Icon */}
         <AiOutlineClose
           onClick={handleMenuToggle}
           className="w-6 h-6 cursor-pointer text-black m-4"
         />
-        {/* Menu Links */}
         <div className="flex flex-col space-y-4 p-4 text-black">
           <Link to="/" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Home
@@ -227,7 +218,11 @@ const Navbar = () => {
           >
             Discounts
           </Link>
-          <Link to="/food" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/food"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             Food
           </Link>
           <Link
@@ -238,13 +233,17 @@ const Navbar = () => {
             Cosmetics
           </Link>
           <Link
-            to="/cleaning"
+            to="/products/cleaning"
             className="hover:text-blue-300"
             onClick={handleMenuToggle}
           >
             Cleaning
           </Link>
-          <Link to="/about" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/about"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             About
           </Link>
         </div>
