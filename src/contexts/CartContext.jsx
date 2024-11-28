@@ -1,17 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from "axios";
-import { jwtDecode } from "jwt-decode"; // Ensure you are importing jwtDecode correctly
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
-// Create CartContext
+// Create the CartContext
 const CartContext = createContext();
 
 // Custom hook to access CartContext
 export const useCart = () => useContext(CartContext);
 
+// Updated CartProvider component
 export const CartProvider = ({ children }) => {
-    const backendUrl = 'http://localhost:5001';
+    const backendUrl = 'http://localhost:5001'; // Backend API URL
 
-    // States for cart, products, authentication, etc.
+    // States for cart, products, authentication, and user data
     const [cart, setCart] = useState([]);
     const [products, setProducts] = useState([]);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,10 +26,9 @@ export const CartProvider = ({ children }) => {
                 const response = await axios.get(`${backendUrl}/api/products`);
                 setProducts(response.data);
             } catch (error) {
-                console.error("Failed to fetch products:", error.response?.data || error.message);
+                console.error('Failed to fetch products:', error.message);
             }
         };
-
         fetchProducts();
     }, []);
 
@@ -36,7 +36,6 @@ export const CartProvider = ({ children }) => {
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         const storedAccessToken = localStorage.getItem('accessToken');
-
         if (storedUser && storedAccessToken) {
             setUser(storedUser);
             setAccessToken(storedAccessToken);
@@ -51,77 +50,59 @@ export const CartProvider = ({ children }) => {
         }
     }, [cart, isAuthenticated]);
 
-    // Function to handle signup
+    // Authentication Functions
     const signup = async (name, email, password, address) => {
         try {
-            const response = await axios.post(`${backendUrl}/api/users/signup`, {
-                name,
-                email,
-                password,
-                address,
+            await axios.post(`${backendUrl}/api/users/signup`, {
+                name, email, password, address,
             });
-
-            if (response.data) {
-                return { success: true };
-            }
+            return { success: true };
         } catch (error) {
-            console.error('Signup failed:', error.response?.data || error.message);
-            return { success: false, error: error.response?.data || error.message };
+            console.error('Signup failed:', error.message);
+            return { success: false, error: error.message };
         }
     };
 
-    // Function to handle login
     const login = async (email, password) => {
         try {
-            const response = await axios.post(`${backendUrl}/api/users/login`, {
-                email,
-                password,
-            }, { withCredentials: true });
-
+            const response = await axios.post(`${backendUrl}/api/users/login`, { email, password }, { withCredentials: true });
             const { accessToken, user } = response.data;
 
-            // Decode the accessToken to get the user ID and other details
-            const decodedToken = jwtDecode(accessToken); // Use jwtDecode to decode the token
-            const userId = decodedToken.id; // Extract the ID from the token
+            // Decode token and add user ID
+            const decodedToken = jwtDecode(accessToken);
+            const completeUser = { ...user, id: decodedToken.id };
 
-            // Add the ID to the user object
-            const completeUser = { ...user, id: userId };
-
-            setUser(completeUser); // Save the user with the ID
+            // Save data
+            setUser(completeUser);
             setAccessToken(accessToken);
             setIsAuthenticated(true);
-
-            // Persist user and access token
             localStorage.setItem('user', JSON.stringify(completeUser));
             localStorage.setItem('accessToken', accessToken);
 
             return { success: true };
         } catch (error) {
-            console.error("Login failed:", error.response?.data || error.message);
-            return { success: false, error: error.response?.data || error.message };
+            console.error('Login failed:', error.message);
+            return { success: false, error: error.message };
         }
     };
 
-    // Function to handle logout
     const logout = async () => {
         try {
             await axios.post(`${backendUrl}/api/users/logout`, {}, { withCredentials: true });
             setUser(null);
             setAccessToken(null);
             setIsAuthenticated(false);
-
-            // Clear data from localStorage
             localStorage.removeItem('user');
             localStorage.removeItem('accessToken');
         } catch (error) {
-            console.error("Logout failed:", error.response?.data || error.message);
+            console.error('Logout failed:', error.message);
         }
     };
 
-    // Function to add product to cart
+    // Cart Management Functions
     const addProductToCart = async (product) => {
         if (product.stock <= 0) {
-            alert("Sorry, this product is out of stock.");
+            alert('This product is out of stock.');
             return;
         }
 
@@ -129,61 +110,61 @@ export const CartProvider = ({ children }) => {
             try {
                 const response = await axios.post(
                     `${backendUrl}/api/cart/add`,
-                    { productId: product.id, quantity: product.quantity || 1 },
+                    { productId: product.id, quantity: product.quantity },
                     { headers: { Authorization: `Bearer ${accessToken}` } }
                 );
                 setCart(response.data.items);
-                alert(`${product.name} added to cart!`);
             } catch (error) {
-                console.error("Failed to add product to cart:", error.response?.data || error.message);
+                console.error('Failed to add product to cart:', error.message);
             }
         } else {
             setCart((prevCart) => {
                 const updatedCart = [...prevCart];
-                const existingProductIndex = updatedCart.findIndex((item) => item.id === product.id);
-
-                if (existingProductIndex !== -1) {
-                    updatedCart[existingProductIndex].quantity += product.quantity || 1;
+                const existingIndex = updatedCart.findIndex(item => item.id === product.id);
+                if (existingIndex !== -1) {
+                    updatedCart[existingIndex].quantity += 1;
                 } else {
-                    updatedCart.push({ ...product, quantity: product.quantity || 1 });
+                    updatedCart.push({ ...product, quantity: 1 });
                 }
-
                 return updatedCart;
             });
         }
     };
 
-    // Function to remove product from cart
     const removeProductFromCart = async (productId) => {
         if (isAuthenticated) {
             try {
                 const response = await axios.delete(
-                    `${backendUrl}/api/cart/remove/${productId}`,
-                    { headers: { Authorization: `Bearer ${accessToken}` } }
+                    `${backendUrl}/api/cart/remove`,
+                    {
+                        data: { productId },
+                        headers: { Authorization: `Bearer ${accessToken}` },
+                    }
                 );
                 setCart(response.data.items);
             } catch (error) {
-                console.error("Failed to remove product from cart:", error.response?.data || error.message);
+                console.error('Failed to remove product from cart:', error.message);
             }
         } else {
-            setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+            setCart(prevCart => prevCart.filter(item => item.id !== productId));
         }
     };
+
     const updateProductQuantity = async (productId, action) => {
         if (isAuthenticated) {
             try {
-                const response = await axios.patch(
+                const response = await axios.put(
                     `${backendUrl}/api/cart/update`,
                     { productId, action },
                     { headers: { Authorization: `Bearer ${accessToken}` } }
                 );
                 setCart(response.data.items);
             } catch (error) {
-                console.error("Failed to update product quantity:", error.response?.data || error.message);
+                console.error('Failed to update product quantity:', error.message);
             }
         } else {
             setCart((prevCart) =>
-                prevCart.map((item) => {
+                prevCart.map(item => {
                     if (item.id === productId) {
                         if (action === 'increase' && item.quantity < item.stock) {
                             return { ...item, quantity: item.quantity + 1 };
@@ -197,7 +178,6 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Function to clear cart
     const clearCart = async () => {
         if (isAuthenticated) {
             try {
@@ -206,12 +186,38 @@ export const CartProvider = ({ children }) => {
                 });
                 setCart([]);
             } catch (error) {
-                console.error("Failed to clear cart:", error.response?.data || error.message);
+                console.error('Failed to clear cart:', error.message);
             }
         } else {
             setCart([]);
         }
     };
+    const viewCart = async () => {
+        if (isAuthenticated) {
+            try {
+                console.log("Fetching cart for authenticated user...");
+                const response = await axios.get(`${backendUrl}/api/cart/view`, {
+                    headers: { Authorization: `Bearer ${accessToken}` },
+                });
+                console.log("Cart fetched successfully:", response.data);
+                setCart(response.data.items); // Update the cart state with items
+            } catch (error) {
+                console.error("Failed to fetch cart:", error.message, error.response?.data);
+            }
+        } else {
+            console.log("Fetching cart for guest user...");
+            const localCart = JSON.parse(localStorage.getItem('cart'));
+            if (localCart) {
+                console.log("Cart loaded from local storage:", localCart);
+                setCart(localCart);
+            } else {
+                console.log("No cart found for guest user in local storage.");
+                setCart([]);
+            }
+        }
+    };
+
+    
 
     // Provide context values
     return (
@@ -221,11 +227,11 @@ export const CartProvider = ({ children }) => {
                 products,
                 isAuthenticated,
                 user,
-                accessToken,
                 addProductToCart,
                 removeProductFromCart,
                 updateProductQuantity,
                 clearCart,
+                viewCart,//this is added and you're going to implement viewCart
                 login,
                 logout,
                 signup,

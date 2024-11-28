@@ -102,8 +102,9 @@ const Product = () => {
       image: product.imageURL,
     };
 
+    // debug: alert(product._id, product.id);
     addProductToCart(productToAdd);
-    alert(`${product.name} added to cart!`);
+    //alert(`${product.name} added to cart!`);
   };
 
   if (loading) {
