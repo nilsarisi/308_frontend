@@ -1,18 +1,45 @@
+/* Import slick carousel CSS files */
 @import 'slick-carousel/slick/slick.css'; 
 @import 'slick-carousel/slick/slick-theme.css';
+
+/* Tailwind's base, components, and utilities imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles */
 
-
+/* Navbar hover style */
 nav a:hover {
-    color: #2b8740 !important; /* A custom hover color */
-  }
-  footer a {
-    color: #bbb;
-  }
-  footer a:hover {
-    color: #5357a7; /* A custom hover color */
+  color: #2b8740 !important; /* A custom hover color */
+}
+
+/* Footer link styles */
+footer a {
+  color: #bbb;
+}
+
+footer a:hover {
+  color: #5357a7; /* A custom hover color */
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  nav {
+    /* Example customizations for small screens */
+    flex-direction: column; /* Stack navbar items vertically */
+    align-items: center; /* Center-align the items */
   }
   
+  .navbar-links {
+    width: 100%; /* Make navbar links take full width on small screens */
+    display: block; /* Ensure it is displayed as a block for stacking */
+  }
+
+  .navbar-item {
+    text-align: center; /* Center-align text in navbar items */
+    padding: 10px 0; /* Add padding to navbar items for better spacing */
+  }
+
+  /* Adjust other elements if necessary */
+}
