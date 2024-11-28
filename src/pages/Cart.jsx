@@ -1,37 +1,45 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 
 const Cart = () => {
-  const { cart, removeProductFromCart, updateProductQuantity } = useCart();
+  const { cart, viewCart, removeProductFromCart, updateProductQuantity, isAuthenticated } = useCart();
   const navigate = useNavigate();
 
-  const decreaseQuantity = (productID) => {
-    const product = cart.find(item => item.id === productID);
+  // Load cart data when the component mounts
+  useEffect(() => {
+    viewCart();
+  }, [viewCart]);
+
+  const decreaseQuantity = (productId) => {
+    const product = cart.find(item => item.id === productId);
     if (product.quantity > 1) {
-      updateProductQuantity(productID, 'decrease');
+      updateProductQuantity(productId, 'decrease');
     }
   };
-  
-  const increaseQuantity = (productID) => {
-    const product = cart.find(item => item.id === productID);
-    if (product.quantity < product.stock) { // Ensure it does not exceed stock
-      updateProductQuantity(productID, 'increase');
+
+  const increaseQuantity = (productId) => {
+    const product = cart.find(item => item.id === productId);
+    if (product.quantity < product.stock) {
+      updateProductQuantity(productId, 'increase');
     }
   };
-  
+
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-  const totalPrice = cart.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  ).toFixed(2);
-  
+  const totalPrice = cart
+    .reduce((total, item) => total + item.price * item.quantity, 0)
+    .toFixed(2);
+
   const handlePlaceOrder = () => {
     if (cart.length > 0) {
-      navigate('/placeorder'); // Navigate to the order placement page
+      if (isAuthenticated) {
+        navigate('/placeorder');
+      } else {
+        alert('Please log in to place your order.');
+        navigate('/login');
+      }
     }
   };
-  
 
   return (
     <div className="container mx-auto p-4">
@@ -41,46 +49,45 @@ const Cart = () => {
         <p className="text-gray-500">Your cart is empty.</p>
       ) : (
         <div className="space-y-4">
-          {cart.map((item) => (
+          {cart.map(item => (
             <div
-              key={item.id}
+              key={item.productId.id}
               className="flex justify-between items-center space-x-4 bg-gray-100 p-4 rounded-lg"
             >
               <div className="flex items-center">
                 <img
-                  src={item.image}
-                  alt={item.name}
+                  src={item.productId.image}
+                  alt={item.productId.name}
                   className="w-16 h-16 object-cover rounded"
                 />
                 <div className="ml-4">
-                  <p className="font-bold">{item.name}</p>
-                  <p>
-                    ₺{item.price} x {item.quantity}
-                  </p>
-                  {/* Display stock status */}
-                  <p className={`mt-2 ${item.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {item.stock > 0 ? 'In stock' : 'Out of stock'}
+                  <p className="font-bold">{item.productId.name}</p>
+                  <p>₺{item.productId.price} x {item.productId.quantity}</p>
+                  <p
+                    className={`mt-2 ${item.productId.stock > 0 ? 'text-green-600' : 'text-red-500'}`}
+                  >
+                    {item.productId.stock > 0 ? 'In stock' : 'Out of stock'}
                   </p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => decreaseQuantity(item.id)}
+                  onClick={() => decreaseQuantity(item.productId.id)}
                   className="bg-gray-300 text-black px-2 py-1 rounded"
-                  disabled={item.quantity <= 1 || item.stock <= 0}
+                  disabled={item.quantity <= 1 || item.productId.stock <= 0}
                 >
                   -
                 </button>
                 <span className="mx-2">{item.quantity}</span>
                 <button
-                  onClick={() => increaseQuantity(item.id)}
+                  onClick={() => increaseQuantity(item.productId.id)}
                   className="bg-gray-300 text-black px-2 py-1 rounded"
-                  disabled={item.quantity >= item.stock}
+                  disabled={item.quantity >= item.productId.stock}
                 >
                   +
                 </button>
                 <button
-                  onClick={() => removeProductFromCart(item.id)}
+                  onClick={() => removeProductFromCart(item.productId.id)}
                   className="text-red-500 ml-4"
                 >
                   Remove
@@ -91,7 +98,6 @@ const Cart = () => {
         </div>
       )}
 
-      {/* Cart Summary */}
       {cart.length > 0 && (
         <div className="bg-white shadow-md p-4 mt-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Cart Summary</h2>
