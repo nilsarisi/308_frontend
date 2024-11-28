@@ -7,6 +7,7 @@ import About from './pages/About';
 import Cart from './pages/Cart';
 import Collection from './pages/Collection';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Contact from './pages/Contact';
 import Order from './pages/Order';
 import PlaceOrder from './pages/PlaceOrder';
@@ -29,6 +30,7 @@ const App = () => {
         <Route path="/cart" element={<Cart />} />
         <Route path="/collection" element={<Collection />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/order" element={<Order />} />
         <Route path="/placeorder" element={<PlaceOrder />} />
