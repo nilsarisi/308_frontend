@@ -154,7 +154,6 @@ const Product = () => {
                   p.category === product.category && // Same category
                   Math.abs(p.price - product.price) <= 20 // Within ±20 price range
               )
-              .sort(() => Math.random() - 0.5) // Shuffle to randomize the products
               .slice(0, 4) // Pick up to 4 products
               .map((similarProduct) => (
                 <div key={similarProduct._id} className="border p-4 rounded-lg shadow-md">

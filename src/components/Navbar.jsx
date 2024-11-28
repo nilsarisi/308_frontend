@@ -206,8 +206,9 @@ const Navbar = () => {
           )}
         </Link>
       </div>
-            {/* Slide-Out Menu */}
-            <div
+
+      {/* Slide-Out Menu */}
+      <div
         className={`fixed top-0 left-0 h-full w-64 bg-yellow-100 shadow-lg z-30 transform ${
           menuVisible ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 ease-in-out`}
@@ -235,21 +236,21 @@ const Navbar = () => {
             Discounts
           </Link>
           <Link
-            to="/food"
+            to="/category/food"
             className="hover:text-blue-300"
             onClick={handleMenuToggle}
           >
             Food
           </Link>
           <Link
-            to="/cosmetics"
+            to="/category/cosmetics"
             className="hover:text-blue-300"
             onClick={handleMenuToggle}
           >
             Cosmetics
           </Link>
           <Link
-            to="/products/cleaning"
+            to="/category/cleaning"
             className="hover:text-blue-300"
             onClick={handleMenuToggle}
           >
@@ -269,4 +270,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
