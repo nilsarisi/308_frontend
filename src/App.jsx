@@ -15,37 +15,30 @@ import Products from './pages/Products';
 import { CartProvider } from './contexts/CartContext';
 import './index.css';
 import OrderSuccess from './pages/OrderSuccess';
-import OrderStatus from "./pages/OrderStatus"; 
-import Account from "./pages/Account"; 
 
 const App = () => {
   return (
     <CartProvider>
-      <Navbar />
-      <Routes>
-        {/* Main Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/collection" element={<Collection />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/order" element={<Order />} />
-        <Route path="/placeorder" element={<PlaceOrder />} />
-        <Route path="/order-success" element={<OrderSuccess />} />
-        <Route path="/order-status" element={<OrderStatus />} />
-        <Route path="/my-account" element={<Account />} />
-
-        {/* Products Route */}
-        <Route path="/products" element={<Products />} />
-
-        {/* Dynamic Category Route */}
-        <Route path="/category/:category" element={<Products />} />
-
-        {/* Product Details Route */}
-        <Route path="/product/:productID" element={<Product />} />
-      </Routes>
-      <Footer />
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/collection" element={<Collection />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/order" element={<Order />} />
+            <Route path="/placeorder" element={<PlaceOrder />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/category/:category" element={<Products />} />
+            <Route path="/product/:productID" element={<Product />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </CartProvider>
   );
 };
