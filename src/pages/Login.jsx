@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // For navigation
-import { useCart } from '../contexts/CartContext'; // Login function from context
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
 
 const Login = () => {
   const { login } = useCart();
-  const navigate = useNavigate(); // Initialize navigation
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  const [error, setError] = useState(''); // Error message state
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -17,22 +18,18 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous error messages
+    setError('');
+    setSuccess('');
 
     const { email, password } = formData;
 
     try {
       const response = await login(email, password);
       if (response.success) {
-        // Successful login: Navigate to the home page
-        navigate('/');
+        setSuccess('Login successful!');
+        navigate('/'); // Redirect to home page
       } else {
-        // Display error message if login fails
-        const errorMessage =
-          typeof response.error === 'string'
-            ? response.error
-            : 'Invalid email or password.';
-        setError(errorMessage);
+        setError(response.error || 'Error during login');
       }
     } catch (err) {
       console.error('Network error:', err);
@@ -47,8 +44,8 @@ const Login = () => {
           Login
         </h2>
 
-        {/* Display error message */}
         {error && <p className="text-red-600 text-center">{error}</p>}
+        {success && <p className="text-green-600 text-center">{success}</p>}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
