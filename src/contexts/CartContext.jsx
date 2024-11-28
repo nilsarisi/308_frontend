@@ -110,7 +110,7 @@ export const CartProvider = ({ children }) => {
             try {
                 const response = await axios.post(
                     `${backendUrl}/api/cart/add`,
-                    { productId: product.id, quantity: product.quantity },
+                    { productId: product.id, quantity: product.quantity, image: product.imageURL },
                     { headers: { Authorization: `Bearer ${accessToken}` } }
                 );
                 setCart(response.data.items);

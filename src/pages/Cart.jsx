@@ -26,9 +26,17 @@ const Cart = () => {
   };
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-  const totalPrice = cart
-    .reduce((total, item) => total + item.price * item.quantity, 0)
-    .toFixed(2);
+
+  const totalPrice = cart.reduce((total, item) => {
+    // Ensure price is numeric
+    const price = parseFloat(item.productId.price);
+    return total + price * item.quantity;
+  }, 0);
+  
+  const totalPriceFormatted = totalPrice.toFixed(2); // Format total price for display
+  
+  console.log(totalPriceFormatted); // For debugging
+  
 
   const handlePlaceOrder = () => {
     if (cart.length > 0) {
@@ -56,13 +64,13 @@ const Cart = () => {
             >
               <div className="flex items-center">
                 <img
-                  src={item.productId.image}
+                  src={item.productId.imageURL}
                   alt={item.productId.name}
                   className="w-16 h-16 object-cover rounded"
                 />
                 <div className="ml-4">
                   <p className="font-bold">{item.productId.name}</p>
-                  <p>₺{item.productId.price} x {item.productId.quantity}</p>
+                  <p>₺{item.productId.price} x {item.quantity}</p>
                   <p
                     className={`mt-2 ${item.productId.stock > 0 ? 'text-green-600' : 'text-red-500'}`}
                   >
@@ -74,7 +82,7 @@ const Cart = () => {
                 <button
                   onClick={() => decreaseQuantity(item.productId.id)}
                   className="bg-gray-300 text-black px-2 py-1 rounded"
-                  disabled={item.quantity <= 1 || item.productId.stock <= 0}
+                  disabled={item.productId.quantity <= 1 || item.productId.stock <= 0}
                 >
                   -
                 </button>
