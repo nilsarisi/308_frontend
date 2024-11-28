@@ -1,10 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../contexts/CartContext";
 import { useNavigate } from "react-router-dom";
 
 const PlaceOrder = () => {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
+
+  // Example: Check if the user is logged in
+  const isAuthenticated = Boolean(localStorage.getItem("authToken")); // Replace with your auth mechanism
+
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!isAuthenticated) {
+      alert("You must log in to place an order.");
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
 
   const [step, setStep] = useState(1);
   const [shippingInfo, setShippingInfo] = useState({
@@ -47,23 +58,19 @@ const PlaceOrder = () => {
   const handlePreviousStep = () => setStep(step - 1);
 
   const handleConfirmOrder = () => {
-    // Create order data
     const orderData = {
-      orderNumber: Math.floor(Math.random() * 1000000), // Random order number
-      status: "Processing",  // Order status
-      estimatedDelivery: "Within 5-7 business days", // Estimated delivery time
-      items: cart, // Cart items
-      totalPrice: totalPrice, // Total price
+      orderNumber: Math.floor(Math.random() * 1000000),
+      status: "Processing",
+      estimatedDelivery: "Within 5-7 business days",
+      items: cart,
+      totalPrice: totalPrice,
     };
 
-    // Store order data in localStorage or context
-    localStorage.setItem('orderData', JSON.stringify(orderData));
+    localStorage.setItem("orderData", JSON.stringify(orderData));
 
-    // Clear the cart
     clearCart();
 
-    // Navigate to OrderSuccess page
-    navigate('/order-success');
+    navigate("/order-success");
   };
 
   return (

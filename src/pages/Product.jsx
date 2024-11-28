@@ -83,6 +83,7 @@ const Product = () => {
       name: product.name,
       price: product.price,
       quantity: quantityToAdd,
+      stock: product.stock,
       image: product.imageURL,
     };
 
