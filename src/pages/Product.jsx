@@ -3,18 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import axios from 'axios';
 
-const renderStars = (rating) => {
-  return Array.from({ length: 5 }, (_, index) => (
-    <span key={index} className={index < rating ? 'text-yellow-500' : 'text-gray-300'}>
-      ★
-    </span>
-  ));
-};
-
 const Product = () => {
   const { productID } = useParams();
   const [product, setProduct] = useState(null);
-  const [staticSimilarProducts, setStaticSimilarProducts] = useState([]); // Static state for similar products
+  const [products, setProducts] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [newRating, setNewRating] = useState(0);
@@ -32,21 +24,8 @@ const Product = () => {
         const feedbackResponse = await axios.get(`http://localhost:5001/api/products/${productID}/feedback`);
         setFeedback(feedbackResponse.data.visibleComments);
 
-        // Fetch and set similar products once
         const allProductsResponse = await axios.get(`http://localhost:5001/api/products`);
-        const allProducts = allProductsResponse.data;
-
-        const filteredSimilarProducts = allProducts
-          .filter(
-            (p) =>
-              p._id !== productID && // Exclude the current product
-              p.category === productResponse.data.category && // Same category
-              Math.abs(p.price - productResponse.data.price) <= 20 // Within ±20 price range
-          )
-          .sort(() => Math.random() - 0.5) // Shuffle to randomize
-          .slice(0, 4); // Pick up to 4 products
-
-        setStaticSimilarProducts(filteredSimilarProducts);
+        setProducts(allProductsResponse.data);
 
         setLoading(false);
       } catch (err) {
@@ -71,15 +50,13 @@ const Product = () => {
     }
 
     try {
-      await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
+      const response = await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
         userId: user.id,
         text: newComment || '',
         rating: newRating,
       });
 
-      alert('Your comment will be reviewed before publishing! Thank you for your feedback.');
-
-      // Reset form fields
+      setFeedback([...feedback, response.data.feedback]);
       setNewComment('');
       setNewRating(0);
     } catch (err) {
@@ -111,6 +88,7 @@ const Product = () => {
     };
 
     addProductToCart(productToAdd);
+    alert(`${product.name} added to cart!`);
   };
 
   if (loading) {
@@ -168,24 +146,32 @@ const Product = () => {
       <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-xl font-bold">Similar Products</h2>
         <div className="flex space-x-4">
-          {staticSimilarProducts.length > 0 ? (
-            staticSimilarProducts.map((similarProduct) => (
-              <div key={similarProduct._id} className="border p-4 rounded-lg shadow-md">
-                <img
-                  src={similarProduct.imageURL}
-                  alt={similarProduct.name}
-                  className="w-full h-40 object-cover mb-4"
-                />
-                <h3 className="text-lg font-bold">{similarProduct.name}</h3>
-                <p className="text-green-700">₺{similarProduct.price}</p>
-                <Link
-                  to={`/product/${similarProduct._id}`}
-                  className="text-blue-500 mt-2 inline-block"
-                >
-                  View Product
-                </Link>
-              </div>
-            ))
+          {product && Array.isArray(products) && products.length > 0 ? (
+            products
+              .filter(
+                (p) =>
+                  p._id !== product._id && // Exclude the current product
+                  p.category === product.category && // Same category
+                  Math.abs(p.price - product.price) <= 20 // Within ±20 price range
+              )
+              .slice(0, 4) // Pick up to 4 products
+              .map((similarProduct) => (
+                <div key={similarProduct._id} className="border p-4 rounded-lg shadow-md">
+                  <img
+                    src={similarProduct.imageURL}
+                    alt={similarProduct.name}
+                    className="w-full h-40 object-cover mb-4"
+                  />
+                  <h3 className="text-lg font-bold">{similarProduct.name}</h3>
+                  <p className="text-green-700">₺{similarProduct.price}</p>
+                  <Link
+                    to={`/product/${similarProduct._id}`}
+                    className="text-blue-500 mt-2 inline-block"
+                  >
+                    View Product
+                  </Link>
+                </div>
+              ))
           ) : (
             <p className="text-gray-500">No similar products found.</p>
           )}
@@ -197,7 +183,7 @@ const Product = () => {
         {feedback.length > 0 ? (
           feedback.map((item) => (
             <div key={item._id} className="border p-4 rounded mb-2">
-              <p>Rating(1-5): {renderStars(item.rating)}</p>
+              <p>Rating: {item.rating}</p>
               <p>{item.text}</p>
             </div>
           ))

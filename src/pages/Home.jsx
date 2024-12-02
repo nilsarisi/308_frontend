@@ -1,38 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom'; // Use useParams for category from URL
 import VeganSlider from '../components/VeganSlider';
-import { useCart } from '../contexts/CartContext'; // Import useCart
+import { useCart } from '../contexts/CartContext';
 import axios from 'axios';
 
 const Home = () => {
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState('');
-  const [products, setProducts] = useState([]); // Store fetched products
-  const { addProductToCart } = useCart(); // Get addProductToCart from context
+  const { category } = useParams(); // Get category from the URL
+  const [activeCategory, setActiveCategory] = useState(category || 'all-products'); // Default to all products
+  const [products, setProducts] = useState([]);
+  const { addProductToCart } = useCart();
 
-  // Fetch products from the backend
+  // Fetch products from the backend based on the category
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/products'); // Replace with your API endpoint
-        setProducts(response.data.slice(0, 4)); // Only keep the first 4 products
+        const response = await axios.get('http://localhost:5001/api/products');
+        if (category && category !== 'all-products') {
+          setProducts(response.data.filter((product) => product.category === category)); // Filter by category
+        } else {
+          setProducts(response.data.slice(0, 4)); // Only show the first 4 products for all products
+        }
       } catch (err) {
         console.error('Failed to fetch products:', err.message);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [category]); // Re-fetch when the category changes
 
   const handleCategoryClick = (category) => {
-    setActiveCategory(category);
+    setActiveCategory(category); // Update active category
   };
 
   // Handle adding a product to the cart
   const handleAddToCart = (product) => {
     if (product.stock <= 0) {
       alert('Sorry, this product is out of stock.');
-      return; // Prevent adding out-of-stock products to the cart
+      return;
     }
     addProductToCart({ ...product, quantity: 1 });
     alert(`${product.name} added to cart!`);

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import {
   AiOutlineUser,
@@ -18,8 +18,9 @@ const Navbar = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
-  const { cart, isAuthenticated, logout } = useCart(); // Get isAuthenticated and logout
+  const { cart, isAuthenticated, logout } = useCart();
   const navigate = useNavigate();
+  const location = useLocation(); // To get current route
 
   const searchResultsRef = useRef(null);
   const accountMenuRef = useRef(null); // Ref for the account dropdown
@@ -84,6 +85,12 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     navigate('/'); // Redirect to the home page after logout
+  };
+
+  // Function to get the active category from URL
+  const getActiveCategory = (categoryName) => {
+    const path = location.pathname.split('/');
+    return path[2] === categoryName; // Check if current URL matches the category
   };
 
   return (
@@ -206,8 +213,9 @@ const Navbar = () => {
           )}
         </Link>
       </div>
-            {/* Slide-Out Menu */}
-            <div
+
+      {/* Slide-Out Menu */}
+      <div
         className={`fixed top-0 left-0 h-full w-64 bg-yellow-100 shadow-lg z-30 transform ${
           menuVisible ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 ease-in-out`}
@@ -222,35 +230,28 @@ const Navbar = () => {
           </Link>
           <Link
             to="/products"
-            className="hover:text-blue-300"
+            className={`hover:text-blue-300 ${getActiveCategory() === 'all-products' ? 'font-bold' : ''}`}
             onClick={handleMenuToggle}
           >
             All Products
           </Link>
           <Link
-            to="/discounts"
-            className="hover:text-blue-300"
-            onClick={handleMenuToggle}
-          >
-            Discounts
-          </Link>
-          <Link
-            to="/food"
-            className="hover:text-blue-300"
+            to="/category/food"
+            className={`hover:text-blue-300 ${getActiveCategory() === 'food' ? 'font-bold' : ''}`}
             onClick={handleMenuToggle}
           >
             Food
           </Link>
           <Link
-            to="/cosmetics"
-            className="hover:text-blue-300"
+            to="/category/cosmetics"
+            className={`hover:text-blue-300 ${getActiveCategory() === 'cosmetics' ? 'font-bold' : ''}`}
             onClick={handleMenuToggle}
           >
             Cosmetics
           </Link>
           <Link
-            to="/products/cleaning"
-            className="hover:text-blue-300"
+            to="/category/cleaning"
+            className={`hover:text-blue-300 ${getActiveCategory() === 'cleaning' ? 'font-bold' : ''}`}
             onClick={handleMenuToggle}
           >
             Cleaning
@@ -269,4 +270,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
