@@ -63,6 +63,8 @@ const Products = () => {
       updatedProducts.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortOption === 'name-desc') {
       updatedProducts.sort((a, b) => b.name.localeCompare(a.name));
+    } else if (sortOption === 'popularity') {
+      updatedProducts.sort((a, b) => b.popularity - a.popularity); // Assuming 'popularity' is a field in your product data
     }
 
     setFilteredProducts(updatedProducts);
@@ -138,6 +140,14 @@ const Products = () => {
           }`}
         >
           Name: Z to A
+        </button>
+        <button
+          onClick={() => setSortOption('popularity')}
+          className={`block w-full text-left py-2 ${
+            sortOption === 'popularity' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
+          Popularity
         </button>
 
         <h2 className="text-xl font-bold mt-8 mb-4">Filter by Price</h2>
