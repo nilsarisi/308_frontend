@@ -1,43 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 const Products = () => {
-  const { category } = useParams(); // Kategoriyi URL'den alıyoruz
-  const [products, setProducts] = useState([]); // Ürünler
-  const [filteredProducts, setFilteredProducts] = useState([]); // Filtrelenmiş Ürünler
+  const [products, setProducts] = useState([]); // Backend data
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [activeCategory, setActiveCategory] = useState('all-products');
   const [sortOption, setSortOption] = useState('default');
   const [priceRange, setPriceRange] = useState([0, 100000]);
+  const [availability, setAvailability] = useState('all');
+  const [searchParams] = useSearchParams(); // For reading query params
 
-  // Ürünleri API'den alıyoruz
+  // Fetch products from the backend
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get('http://localhost:5001/api/products'); // API'den ürünleri al
+    axios
+      .get('http://localhost:5001/api/products') // Replace with your actual API endpoint
+      .then((response) => {
         setProducts(response.data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      }
-    };
-
-    fetchProducts();
+        setFilteredProducts(response.data); // Initial filtering
+      })
+      .catch((error) => console.error('Error fetching products:', error));
   }, []);
 
-  // Kategoriye göre ürünleri filtrele
+  // Update active category from URL
+  useEffect(() => {
+    const categoryFromParams = searchParams.get('category'); // Get category from query params
+    if (categoryFromParams) {
+      setActiveCategory(categoryFromParams);
+    }
+  }, [searchParams]);
+
+  // Update filtered products when filters change
   useEffect(() => {
     let updatedProducts = [...products];
 
-    // Kategoriye göre filtreleme
-    if (category && category !== 'all-products') {
-      updatedProducts = updatedProducts.filter((product) => product.category === category);
+    // Filter by category
+    if (activeCategory !== 'all-products') {
+      updatedProducts = updatedProducts.filter(
+        (product) => product.category === activeCategory
+      );
     }
 
-    // Fiyat aralığına göre filtreleme
+    // Filter by price range
     updatedProducts = updatedProducts.filter(
       (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
     );
 
-    // Sıralama işlemi
+    // Filter by availability
+    if (availability !== 'all') {
+      const isAvailable = availability === 'in-stock';
+      updatedProducts = updatedProducts.filter(
+        (product) => (product.stock > 0) === isAvailable
+      );
+    }
+
+    // Sort products
     if (sortOption === 'price-low-high') {
       updatedProducts.sort((a, b) => a.price - b.price);
     } else if (sortOption === 'price-high-low') {
@@ -49,74 +66,46 @@ const Products = () => {
     }
 
     setFilteredProducts(updatedProducts);
-  }, [category, priceRange, sortOption, products]);
+  }, [activeCategory, priceRange, availability, sortOption, products]);
 
   return (
     <div className="container mx-auto flex">
-      {/* Sol Menü (Filtreleme) */}
+      {/* Sidebar for Filters */}
       <div className="w-1/4 p-4 border-r">
         <h2 className="text-xl font-bold mb-4">Filter by Category</h2>
-        <Link
-          to="/products"
-          className={`block w-full text-left py-2 ${category === 'all-products' ? 'font-bold' : ''}`}
+        <button
+          onClick={() => setActiveCategory('all-products')}
+          className={`block w-full text-left py-2 ${
+            activeCategory === 'all-products' ? 'font-bold' : ''
+          }`}
         >
           All Products
-        </Link>
-        <Link
-          to="/category/food"
-          className={`block w-full text-left py-2 ${category === 'food' ? 'font-bold' : ''}`}
+        </button>
+        <button
+          onClick={() => setActiveCategory('food')}
+          className={`block w-full text-left py-2 ${
+            activeCategory === 'food' ? 'font-bold' : ''
+          }`}
         >
           Food
-        </Link>
-        <Link
-          to="/category/cosmetics"
-          className={`block w-full text-left py-2 ${category === 'cosmetics' ? 'font-bold' : ''}`}
+        </button>
+        <button
+          onClick={() => setActiveCategory('cosmetics')}
+          className={`block w-full text-left py-2 ${
+            activeCategory === 'cosmetics' ? 'font-bold' : ''
+          }`}
         >
           Cosmetics
-        </Link>
-        <Link
-          to="/category/cleaning"
-          className={`block w-full text-left py-2 ${category === 'cleaning' ? 'font-bold' : ''}`}
+        </button>
+        <button
+          onClick={() => setActiveCategory('cleaning')}
+          className={`block w-full text-left py-2 ${
+            activeCategory === 'cleaning' ? 'font-bold' : ''
+          }`}
         >
           Cleaning
-        </Link>
-
-        {/* Fiyat aralığı */}
-        <h2 className="text-xl font-bold mt-8 mb-4">Filter by Price</h2>
-        <button
-          onClick={() => setPriceRange([0, 100000])}
-          className={`block w-full text-left py-2 ${
-            priceRange[0] === 0 && priceRange[1] === 100000 ? 'font-bold' : ''
-          }`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setPriceRange([0, 100])}
-          className={`block w-full text-left py-2 ${
-            priceRange[0] === 0 && priceRange[1] === 100 ? 'font-bold' : ''
-          }`}
-        >
-          ₺0 - ₺100
-        </button>
-        <button
-          onClick={() => setPriceRange([100, 500])}
-          className={`block w-full text-left py-2 ${
-            priceRange[0] === 100 && priceRange[1] === 500 ? 'font-bold' : ''
-          }`}
-        >
-          ₺100 - ₺500
-        </button>
-        <button
-          onClick={() => setPriceRange([500, 1000])}
-          className={`block w-full text-left py-2 ${
-            priceRange[0] === 500 && priceRange[1] === 1000 ? 'font-bold' : ''
-          }`}
-        >
-          ₺500 - ₺1000
         </button>
 
-        {/* Sıralama */}
         <h2 className="text-xl font-bold mt-8 mb-4">Sort By</h2>
         <button
           onClick={() => setSortOption('price-low-high')}
@@ -150,9 +139,69 @@ const Products = () => {
         >
           Name: Z to A
         </button>
+
+        <h2 className="text-xl font-bold mt-8 mb-4">Filter by Price</h2>
+        <button
+          onClick={() => setPriceRange([0, 100000])}
+          className={`block w-full text-left py-2 ${
+            priceRange[0] === 0 && priceRange[1] === 100000 ? 'font-bold text-blue-700' : ''
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setPriceRange([0, 100])}
+          className={`block w-full text-left py-2 ${
+            priceRange[0] === 0 && priceRange[1] === 100 ? 'font-bold text-blue-700' : ''
+          }`}
+        >
+          ₺0 - ₺100
+        </button>
+        <button
+          onClick={() => setPriceRange([100, 500])}
+          className={`block w-full text-left py-2 ${
+            priceRange[0] === 100 && priceRange[1] === 500 ? 'font-bold text-blue-700' : ''
+          }`}
+        >
+          ₺100 - ₺500
+        </button>
+        <button
+          onClick={() => setPriceRange([500, 1000])}
+          className={`block w-full text-left py-2 ${
+            priceRange[0] === 500 && priceRange[1] === 1000 ? 'font-bold text-blue-700' : ''
+          }`}
+        >
+          ₺500 - ₺1000
+        </button>
+
+        <h2 className="text-xl font-bold mt-8 mb-4">Availability</h2>
+        <button
+          onClick={() => setAvailability('all')}
+          className={`block w-full text-left py-2 ${
+            availability === 'all' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setAvailability('in-stock')}
+          className={`block w-full text-left py-2 ${
+            availability === 'in-stock' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
+          In Stock
+        </button>
+        <button
+          onClick={() => setAvailability('out-of-stock')}
+          className={`block w-full text-left py-2 ${
+            availability === 'out-of-stock' ? 'font-bold text-blue-700' : ''
+          }`}
+        >
+          Out of Stock
+        </button>
       </div>
 
-      {/* Ürünler Bölümü */}
+      {/* Products Section */}
       <div className="w-3/4 p-4">
         <h1 className="text-3xl font-bold mb-4">Products</h1>
         <div className="grid grid-cols-3 gap-4">
