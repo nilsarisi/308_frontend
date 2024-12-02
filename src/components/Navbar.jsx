@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import {
   AiOutlineUser,
@@ -20,10 +20,9 @@ const Navbar = () => {
   const [allProducts, setAllProducts] = useState([]);
   const { cart, isAuthenticated, logout } = useCart();
   const navigate = useNavigate();
-  const location = useLocation(); // To get current route
 
   const searchResultsRef = useRef(null);
-  const accountMenuRef = useRef(null); // Ref for the account dropdown
+  const accountMenuRef = useRef(null);
 
   // Fetch all products
   useEffect(() => {
@@ -67,13 +66,9 @@ const Navbar = () => {
 
   const toggleAccountMenu = () => setAccountMenuVisible(!accountMenuVisible);
 
-  // Close the account menu if clicked outside
   const handleClickOutside = (e) => {
-    if (
-      accountMenuRef.current &&
-      !accountMenuRef.current.contains(e.target)
-    ) {
-      setAccountMenuVisible(false); // Close the dropdown if clicked outside
+    if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) {
+      setAccountMenuVisible(false);
     }
   };
 
@@ -84,28 +79,17 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/'); // Redirect to the home page after logout
-  };
-
-  // Function to get the active category from URL
-  const getActiveCategory = (categoryName) => {
-    const path = location.pathname.split('/');
-    return path[2] === categoryName; // Check if current URL matches the category
+    navigate('/');
   };
 
   return (
     <nav className="flex items-center justify-between p-4 bg-green-900 text-white shadow-xl relative">
-      {/* Left Side - Logo and Title */}
       <div className="flex items-center space-x-3">
-        <AiOutlineMenu
-          onClick={handleMenuToggle}
-          className="w-6 h-6 cursor-pointer"
-        />
+        <AiOutlineMenu onClick={handleMenuToggle} className="w-6 h-6 cursor-pointer" />
         <img src={logo} alt="Logo" className="w-14 h-16" />
         <h1 className="font-luckiest-guy text-4xl">Vegan Eats</h1>
       </div>
 
-      {/* Center - Search Bar */}
       <div className="relative flex items-center gap-2 border rounded-lg p-2 max-w-md shadow-md">
         <AiOutlineSearch className="w-6 h-6 text-gray-300 cursor-pointer" />
         <input
@@ -136,9 +120,7 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Right Side - Account, Wishlist, Cart */}
       <div className="flex space-x-4">
-        {/* Account Link and Dropdown */}
         <div className="relative" ref={accountMenuRef}>
           <button
             onClick={toggleAccountMenu}
@@ -147,43 +129,26 @@ const Navbar = () => {
             <AiOutlineUser size={24} />
             <span className="font-luckiest-guy text-xl">Account</span>
           </button>
-
-          {/* Dropdown Menu */}
           {accountMenuVisible && (
             <div className="flex flex-col absolute right-0 mt-2 bg-white border rounded-lg shadow-lg p-4 text-black z-10">
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/my-account"
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                  >
+                  <Link to="/my-account" className="p-2 hover:bg-gray-100 cursor-pointer">
                     My Account
                   </Link>
-                  <Link
-                    to="/order-status"
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                  >
+                  <Link to="/order-status" className="p-2 hover:bg-gray-100 cursor-pointer">
                     Orders
                   </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                  >
+                  <button onClick={handleLogout} className="p-2 hover:bg-gray-100 cursor-pointer">
                     Logout
                   </button>
                 </>
               ) : (
                 <>
-                  <Link
-                    to="/login"
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                  >
+                  <Link to="/login" className="p-2 hover:bg-gray-100 cursor-pointer">
                     Sign In
                   </Link>
-                  <Link
-                    to="/signup"
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                  >
+                  <Link to="/signup" className="p-2 hover:bg-gray-100 cursor-pointer">
                     Sign Up
                   </Link>
                 </>
@@ -191,19 +156,11 @@ const Navbar = () => {
             </div>
           )}
         </div>
-
-        <Link
-          to="/favorites"
-          className="flex items-center space-x-1 hover:text-blue-300"
-        >
+        <Link to="/favorites" className="flex items-center space-x-1 hover:text-blue-300">
           <AiOutlineHeart size={24} />
           <span className="font-luckiest-guy text-xl">Wishlist</span>
         </Link>
-
-        <Link
-          to="/cart"
-          className="flex items-center space-x-1 hover:text-blue-300 relative"
-        >
+        <Link to="/cart" className="flex items-center space-x-1 hover:text-blue-300 relative">
           <AiOutlineShoppingCart size={24} />
           <span className="font-luckiest-guy text-xl">Cart</span>
           {totalItems > 0 && (
@@ -213,8 +170,6 @@ const Navbar = () => {
           )}
         </Link>
       </div>
-
-      {/* Slide-Out Menu */}
       <div
         className={`fixed top-0 left-0 h-full w-64 bg-yellow-100 shadow-lg z-30 transform ${
           menuVisible ? 'translate-x-0' : '-translate-x-full'
@@ -228,39 +183,22 @@ const Navbar = () => {
           <Link to="/" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Home
           </Link>
-          <Link
-            to="/products"
-            className={`hover:text-blue-300 ${getActiveCategory() === 'all-products' ? 'font-bold' : ''}`}
-            onClick={handleMenuToggle}
-          >
+          <Link to="/products?category=all-products" className="hover:text-blue-300" onClick={handleMenuToggle}>
             All Products
           </Link>
-          <Link
-            to="/category/food"
-            className={`hover:text-blue-300 ${getActiveCategory() === 'food' ? 'font-bold' : ''}`}
-            onClick={handleMenuToggle}
-          >
+          <Link to="/discounts" className="hover:text-blue-300" onClick={handleMenuToggle}>
+            Discounts
+          </Link>
+          <Link to="/products?category=food" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Food
           </Link>
-          <Link
-            to="/category/cosmetics"
-            className={`hover:text-blue-300 ${getActiveCategory() === 'cosmetics' ? 'font-bold' : ''}`}
-            onClick={handleMenuToggle}
-          >
+          <Link to="/products?category=cosmetics" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Cosmetics
           </Link>
-          <Link
-            to="/category/cleaning"
-            className={`hover:text-blue-300 ${getActiveCategory() === 'cleaning' ? 'font-bold' : ''}`}
-            onClick={handleMenuToggle}
-          >
+          <Link to="/products?category=cleaning" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Cleaning
           </Link>
-          <Link
-            to="/about"
-            className="hover:text-blue-300"
-            onClick={handleMenuToggle}
-          >
+          <Link to="/about" className="hover:text-blue-300" onClick={handleMenuToggle}>
             About
           </Link>
         </div>
