@@ -4,20 +4,30 @@ import { useCart } from '../contexts/CartContext';
 import axios from 'axios';
 
 const renderStars = (rating) => {
-  return Array.from({ length: 5 }, (_, index) => (
-    <span key={index} className={index < rating ? 'text-yellow-500' : 'text-gray-300'}>
-      ★
-    </span>
-  ));
-};
+  const fullStars = Math.floor(rating);
+  const halfStar = rating % 1 !== 0;
+  const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
 
+  return (
+    <>
+      {Array.from({ length: fullStars }, (_, index) => (
+        <span key={`full-${index}`} className="text-yellow-500">★</span>
+      ))}
+      {halfStar && <span className="text-yellow-500">☆</span>}
+      {Array.from({ length: emptyStars }, (_, index) => (
+        <span key={`empty-${index}`} className="text-gray-300">★</span>
+      ))}
+    </>
+  );
+};
 
 const Product = () => {
   const { productID } = useParams();
   const [product, setProduct] = useState(null);
   const [staticSimilarProducts, setStaticSimilarProducts] = useState([]); // Static state for similar products
   const [products, setProducts] = useState([]);
-  const [feedback, setFeedback] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [ratings, setRatings] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [newRating, setNewRating] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -28,18 +38,21 @@ const Product = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch product details
+        // Fetch product details and increase popularity
         const productResponse = await axios.get(`http://localhost:5001/api/products/${productID}`);
         setProduct(productResponse.data);
-  
-        // Fetch feedback for the product
-        const feedbackResponse = await axios.get(`http://localhost:5001/api/products/${productID}/feedback`);
-        setFeedback(feedbackResponse.data.visibleComments);
-  
+
+        // Increase product popularity
+        await axios.put(`http://localhost:5001/api/products/${productID}/increase-popularity`);
+
+        // Fetch comments and ratings for the product
+        setComments(productResponse.data.comments.filter(comment => comment.isVisible));
+        setRatings(productResponse.data.ratings);
+
         // Fetch all products to filter similar ones
         const allProductsResponse = await axios.get(`http://localhost:5001/api/products`);
         const allProducts = allProductsResponse.data;
-  
+
         // Filter and randomize similar products
         const filteredSimilarProducts = allProducts
           .filter(
@@ -50,10 +63,10 @@ const Product = () => {
           )
           .sort(() => Math.random() - 0.5) // Shuffle to randomize
           .slice(0, 4); // Pick up to 4 products
-  
+
         setStaticSimilarProducts(filteredSimilarProducts);
         setProducts(allProducts); // Set all products in the state
-  
+
         setLoading(false); // Stop loading
       } catch (err) {
         console.error('Error fetching product or feedback:', err.message);
@@ -61,35 +74,37 @@ const Product = () => {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, [productID]);
-  
+
   const handleAddFeedback = async () => {
     if (!isAuthenticated) {
       alert('You must be logged in to leave feedback.');
       return;
     }
-  
+
     if (!newRating || newRating < 1 || newRating > 5) {
       alert('Please provide a valid rating between 1 and 5.');
       return;
     }
-  
+
     try {
       // Post feedback
       const response = await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
         userId: user.id,
+        username: user.name,
         text: newComment || '',
         rating: newRating,
       });
-  
+
       // Alert the user
       alert('Your comment will be reviewed before publishing! Thank you for your feedback.');
-  
-      // Update feedback state with the new feedback
-      setFeedback([...feedback, response.data.feedback]);
-  
+
+      // Update comments and ratings state with the new feedback
+      setComments([...comments, response.data.feedback.newComment]);
+      setRatings([...ratings, response.data.feedback.newRating]);
+
       // Reset form fields
       setNewComment('');
       setNewRating(0);
@@ -98,7 +113,6 @@ const Product = () => {
       alert('Failed to add feedback');
     }
   };
-  
 
   const increaseQuantity = () => setQuantity(quantity + 1);
   const decreaseQuantity = () => {
@@ -126,6 +140,9 @@ const Product = () => {
     alert(`${product.name} added to cart!`);
   };
 
+  const averageRating = ratings.length > 0 ? (ratings.reduce((acc, rating) => acc + rating.rating, 0) / ratings.length).toFixed(1) : 0;
+  const userRating = ratings.find(rating => rating.user === user?.id)?.rating || 'Not rated yet';
+
   if (loading) {
     return <div>Loading product details...</div>;
   }
@@ -150,6 +167,10 @@ const Product = () => {
           {product.stock >= 0 && (
             <p className="text-sm text-gray-500 mt-1">Available: {product.stock}</p>
           )}
+          <div className="mt-4">
+            <p className="text-lg font-bold">Average Rating: {averageRating} {renderStars(averageRating)}</p>
+            <p className="text-lg font-bold">Your Rating: {userRating} {userRating !== 'Not rated yet' && renderStars(userRating)}</p>
+          </div>
           <div className="flex items-center mt-4">
             <button
               onClick={decreaseQuantity}
@@ -213,16 +234,19 @@ const Product = () => {
         </div>
       </div>
 
-
       <div className="mt-8">
         <h2 className="text-2xl font-bold">Comments and Ratings</h2>
-        {feedback.length > 0 ? (
-          feedback.map((item) => (
-            <div key={item._id} className="border p-4 rounded mb-2">
-              <p>Rating(1-5): {renderStars(item.rating)}</p>
-              <p>{item.text}</p>
-            </div>
-          ))
+        {comments.length > 0 ? (
+          comments.map((item) => {
+            const rating = ratings.find(rating => rating.user.toString() === item.user.toString())?.rating || 'Not rated';
+            return (
+              <div key={item._id} className="border p-4 rounded mb-2">
+                <p>Rating (1-5): {renderStars(rating)}</p>
+                <p>{item.username}</p>
+                <p>{item.text}</p>
+              </div>
+            );
+          })
         ) : (
           <p>No comments or ratings yet.</p>
         )}
@@ -258,4 +282,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default Product; 
