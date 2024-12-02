@@ -3,6 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import axios from 'axios';
 
+const renderStars = (rating) => {
+  return Array.from({ length: 5 }, (_, index) => (
+    <span key={index} className={index < rating ? 'text-yellow-500' : 'text-gray-300'}>
+      ★
+    </span>
+  ));
+};
+
 const Product = () => {
   const { productID } = useParams();
   const [product, setProduct] = useState(null);
@@ -102,9 +110,7 @@ const Product = () => {
       image: product.imageURL,
     };
 
-    // debug: alert(product._id, product.id);
     addProductToCart(productToAdd);
-    //alert(`${product.name} added to cart!`);
   };
 
   if (loading) {
@@ -191,7 +197,7 @@ const Product = () => {
         {feedback.length > 0 ? (
           feedback.map((item) => (
             <div key={item._id} className="border p-4 rounded mb-2">
-              <p>Rating: {item.rating}</p>
+              <p>Rating(1-5): {renderStars(item.rating)}</p>
               <p>{item.text}</p>
             </div>
           ))
