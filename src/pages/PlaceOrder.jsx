@@ -6,8 +6,7 @@ const PlaceOrder = () => {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
 
-  // Example: Check if the user is logged in
-  const isAuthenticated = Boolean(localStorage.getItem("authToken")); // Replace with your auth mechanism
+  const { isAuthenticated } = useCart();
 
   useEffect(() => {
     // Redirect to login if not authenticated

@@ -1,0 +1,22 @@
+**Product Release:**
+Version 0.4.5
+
+**Operating Environment:**
+- Browser: Chrome 95.0
+- OS: macOS Sanoma 14.1
+
+**System Resources:**
+- CPU: Apple M1 Pro
+- RAM: 16GB
+
+**Problem History:**
+1. Navigate to a product page.
+2. Start typing a comment on the product.
+3. Observe the similar products section refreshing with every keystroke.
+
+**Expected and Observed Behavior:**
+- **Expected Behavior:** The similar products section should only refresh when the product page is entered or reloaded.
+- **Observed Behavior:** The similar products section refreshes with every input while commenting on a product.
+
+**One-Line Summary:**
+Similar products section refreshes on every comment input instead of only when entering the product page.
