@@ -1,3 +1,4 @@
+// Cart.jsx
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
@@ -12,43 +13,51 @@ const Cart = () => {
   } = useCart();
   const navigate = useNavigate();
 
-  // Load cart data when the component mounts
+  // Load cart data when the component mounts or when authentication state changes
   useEffect(() => {
-    if (isAuthenticated) {
-      viewCart(); // Fetch cart from the backend for authenticated users
-    }
-  }, [viewCart, isAuthenticated]);
+    viewCart(); // Fetch cart data for both authenticated and unauthenticated users
+  }, [isAuthenticated, viewCart]);
 
-  const decreaseQuantity = (productId) => {
-    const product = isAuthenticated
-      ? cart.find((item) => item.productId.id === productId)
-      : cart.find((item) => item.id === productId);
+  const increaseQuantity = async (productId) => {
+    const product = cart.find((item) =>
+      isAuthenticated ? item.productId?._id === productId : item.id === productId
+    );
+    if (
+      product &&
+      product.quantity <
+        (isAuthenticated ? product.productId?.stock ?? 0 : product.stock ?? 0)
+    ) {
+      try {
+        await updateProductQuantity(productId, product.quantity + 1);
+      } catch (error) {
+        console.error('Failed to increase quantity:', error);
+      }
+    }
+  };
+
+  const decreaseQuantity = async (productId) => {
+    const product = cart.find((item) =>
+      isAuthenticated ? item.productId?._id === productId : item.id === productId
+    );
     if (product && product.quantity > 1) {
-      updateProductQuantity(productId, 'decrease');
+      try {
+        await updateProductQuantity(productId, product.quantity - 1);
+      } catch (error) {
+        console.error('Failed to decrease quantity:', error);
+      }
     }
   };
 
-  const increaseQuantity = (productId) => {
-    const product = isAuthenticated
-      ? cart.find((item) => item.productId.id === productId)
-      : cart.find((item) => item.id === productId);
-    if (product && product.quantity < (isAuthenticated ? product.productId.stock : product.stock)) {
-      updateProductQuantity(productId, 'increase');
-    }
-  };
+  const totalItems = cart.reduce((total, item) => total + (item.quantity || 0), 0);
 
-  const totalItems = isAuthenticated
-    ? cart.reduce((total, item) => total + item.quantity, 0)
-    : cart.length;
+  const totalPrice = cart.reduce((total, item) => {
+    const price = parseFloat(
+      isAuthenticated ? item.productId?.price ?? 0 : item.price ?? 0
+    );
+    return total + price * (item.quantity || 0);
+  }, 0);
 
-  const totalPrice = isAuthenticated
-    ? cart.reduce((total, item) => {
-        const price = parseFloat(item.productId.price || 0);
-        return total + price * item.quantity;
-      }, 0)
-    : cart.reduce((total, item) => total + item.price * item.quantity, 0);
-
-  const totalPriceFormatted = totalPrice.toFixed(2); // Format total price for display
+  const totalPriceFormatted = totalPrice.toFixed(2);
 
   const handlePlaceOrder = () => {
     if (cart.length > 0) {
@@ -71,36 +80,40 @@ const Cart = () => {
         <div className="space-y-4">
           {cart.map((item) => (
             <div
-              key={isAuthenticated ? item.productId.id : item.id}
+              key={isAuthenticated ? item.productId?._id : item.id}
               className="flex justify-between items-center space-x-4 bg-gray-100 p-4 rounded-lg"
             >
               <div className="flex items-center">
                 <img
                   src={
                     isAuthenticated
-                      ? item.productId.imageURL || '/placeholder.png'
-                      : item.image || '/placeholder.png'
+                      ? item.productId?.imageURL || '/placeholder.png'
+                      : item.imageURL || '/placeholder.png'
                   }
-                  alt={isAuthenticated ? item.productId.name : item.name}
+                  alt={isAuthenticated ? item.productId?.name : item.name}
                   className="w-16 h-16 object-cover rounded"
                 />
                 <div className="ml-4">
                   <p className="font-bold">
-                    {isAuthenticated ? item.productId.name : item.name}
+                    {isAuthenticated ? item.productId?.name : item.name}
                   </p>
                   <p>
                     ₺
-                    {isAuthenticated ? item.productId.price : item.price} x{' '}
+                    {isAuthenticated ? item.productId?.price : item.price} x{' '}
                     {item.quantity}
                   </p>
                   <p
                     className={`mt-2 ${
-                      (isAuthenticated ? item.productId.stock : item.stock) > 0
+                      (isAuthenticated
+                        ? item.productId?.stock
+                        : item.stock ?? 0) > 0
                         ? 'text-green-600'
                         : 'text-red-500'
                     }`}
                   >
-                    {(isAuthenticated ? item.productId.stock : item.stock) > 0
+                    {(isAuthenticated
+                      ? item.productId?.stock
+                      : item.stock ?? 0) > 0
                       ? 'In stock'
                       : 'Out of stock'}
                   </p>
@@ -108,29 +121,43 @@ const Cart = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => decreaseQuantity(isAuthenticated ? item.productId.id : item.id)}
+                  onClick={() =>
+                    decreaseQuantity(
+                      isAuthenticated ? item.productId?._id : item.id
+                    )
+                  }
                   className="bg-gray-300 text-black px-2 py-1 rounded"
                   disabled={
                     item.quantity <= 1 ||
-                    (isAuthenticated ? item.productId.stock : item.stock) <= 0
+                    (isAuthenticated
+                      ? item.productId?.stock ?? 0
+                      : item.stock ?? 0) <= 0
                   }
                 >
                   -
                 </button>
                 <span className="mx-2">{item.quantity}</span>
                 <button
-                  onClick={() => increaseQuantity(isAuthenticated ? item.productId.id : item.id)}
+                  onClick={() =>
+                    increaseQuantity(
+                      isAuthenticated ? item.productId?._id : item.id
+                    )
+                  }
                   className="bg-gray-300 text-black px-2 py-1 rounded"
                   disabled={
                     item.quantity >=
-                    (isAuthenticated ? item.productId.stock : item.stock)
+                    (isAuthenticated
+                      ? item.productId?.stock ?? 0
+                      : item.stock ?? 0)
                   }
                 >
                   +
                 </button>
                 <button
                   onClick={() =>
-                    removeProductFromCart(isAuthenticated ? item.productId.id : item.id)
+                    removeProductFromCart(
+                      isAuthenticated ? item.productId?._id : item.id
+                    )
                   }
                   className="text-red-500 ml-4"
                 >
@@ -157,7 +184,9 @@ const Cart = () => {
             onClick={handlePlaceOrder}
             disabled={cart.length === 0}
             className={`w-full bg-blue-500 text-white py-2 px-4 rounded-lg ${
-              cart.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+              cart.length === 0
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:bg-blue-600'
             }`}
           >
             Place Order

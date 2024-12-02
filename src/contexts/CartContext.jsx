@@ -1,3 +1,4 @@
+//cartContext
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
@@ -105,12 +106,12 @@ export const CartProvider = ({ children }) => {
             alert('This product is out of stock.');
             return;
         }
-
+    
         if (isAuthenticated) {
             try {
                 const response = await axios.post(
                     `${backendUrl}/api/cart/add`,
-                    { productId: product.id, quantity: product.quantity, image: product.imageURL },
+                    { productId: product.id, quantity: product.quantity || 1 },
                     { headers: { Authorization: `Bearer ${accessToken}` } }
                 );
                 setCart(response.data.items);
@@ -120,16 +121,18 @@ export const CartProvider = ({ children }) => {
         } else {
             setCart((prevCart) => {
                 const updatedCart = [...prevCart];
-                const existingIndex = updatedCart.findIndex(item => item.id === product.id);
+                const existingIndex = updatedCart.findIndex((item) => item.id === product.id);
                 if (existingIndex !== -1) {
                     updatedCart[existingIndex].quantity += 1;
                 } else {
                     updatedCart.push({ ...product, quantity: 1 });
                 }
+                localStorage.setItem('cart', JSON.stringify(updatedCart));
                 return updatedCart;
             });
         }
     };
+    
 
     const removeProductFromCart = async (productId) => {
         if (isAuthenticated) {
@@ -150,12 +153,13 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    const updateProductQuantity = async (productId, action) => {
+    const updateProductQuantity = async (productId, newQuantity) => {
+        console.log(`updateProductQuantity called with productId: ${productId}, newQuantity: ${newQuantity}`);
         if (isAuthenticated) {
             try {
                 const response = await axios.put(
                     `${backendUrl}/api/cart/update`,
-                    { productId, action },
+                    { productId, quantity: newQuantity },
                     { headers: { Authorization: `Bearer ${accessToken}` } }
                 );
                 setCart(response.data.items);
@@ -164,19 +168,17 @@ export const CartProvider = ({ children }) => {
             }
         } else {
             setCart((prevCart) =>
-                prevCart.map(item => {
+                prevCart.map((item) => {
                     if (item.id === productId) {
-                        if (action === 'increase' && item.quantity < item.stock) {
-                            return { ...item, quantity: item.quantity + 1 };
-                        } else if (action === 'decrease' && item.quantity > 1) {
-                            return { ...item, quantity: item.quantity - 1 };
-                        }
+                        return { ...item, quantity: newQuantity };
                     }
                     return item;
                 })
             );
         }
     };
+    
+    
 
     const clearCart = async () => {
         if (isAuthenticated) {
@@ -231,7 +233,7 @@ export const CartProvider = ({ children }) => {
                 removeProductFromCart,
                 updateProductQuantity,
                 clearCart,
-                viewCart,//this is added and you're going to implement viewCart
+                viewCart,
                 login,
                 logout,
                 signup,

@@ -1,21 +1,23 @@
+//home.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import VeganSlider from '../components/VeganSlider';
-import { useCart } from '../contexts/CartContext'; // Import useCart
+import { useCart } from '../contexts/CartContext';
 import axios from 'axios';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { addProductToCart } = useCart();
   const [activeCategory, setActiveCategory] = useState('');
-  const [products, setProducts] = useState([]); // Store fetched products
-  const { addProductToCart } = useCart(); // Get addProductToCart from context
+  const [products, setProducts] = useState([]);
 
   // Fetch products from the backend
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/products'); // Replace with your API endpoint
-        setProducts(response.data.slice(0, 4)); // Only keep the first 4 products
+        const response = await axios.get('http://localhost:5001/api/products');
+        setProducts(response.data.slice(0, 4));
       } catch (err) {
         console.error('Failed to fetch products:', err.message);
       }
@@ -29,13 +31,28 @@ const Home = () => {
   };
 
   // Handle adding a product to the cart
-  const handleAddToCart = (product) => {
-    if (product.stock <= 0) {
-      alert('Sorry, this product is out of stock.');
-      return; // Prevent adding out-of-stock products to the cart
+  const handleAddToCart = async (product) => {
+    try {
+      if (product.stock <= 0) {
+        alert('Sorry, this product is out of stock.');
+        return; // Prevent adding out-of-stock products to the cart
+      }
+
+      // Add product to the cart using CartContext
+      await addProductToCart({
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        stock: product.stock,
+        imageURL: product.imageURL,
+        quantity: 1,
+      });
+
+      alert(`${product.name} added to cart!`);
+    } catch (error) {
+      console.error('Failed to add product to cart:', error.message);
+      alert('Failed to add product to cart. Please try again.');
     }
-    addProductToCart({ ...product, quantity: 1 });
-    alert(`${product.name} added to cart!`);
   };
 
   const handleViewDetails = (productId) => {
