@@ -1,5 +1,6 @@
 // Cart.jsx
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 
@@ -13,10 +14,25 @@ const Cart = () => {
   } = useCart();
   const navigate = useNavigate();
 
-  // Load cart data when the component mounts or when authentication state changes
+  // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load cart data when the component mounts
   useEffect(() => {
-    viewCart(); // Fetch cart data for both authenticated and unauthenticated users
-  }, [isAuthenticated, viewCart]);
+    const fetchCartData = async () => {
+      setIsLoading(true);
+
+      try {
+        await viewCart();
+      } catch (error) {
+        console.error('Error fetching cart data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCartData();
+  }, []); // Empty dependency array
 
   const increaseQuantity = async (productId) => {
     const product = cart.find((item) =>
@@ -48,6 +64,7 @@ const Cart = () => {
     }
   };
 
+  // Calculations for total items and price
   const totalItems = cart.reduce((total, item) => total + (item.quantity || 0), 0);
 
   const totalPrice = cart.reduce((total, item) => {
@@ -74,7 +91,12 @@ const Cart = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Your Cart</h1>
 
-      {cart.length === 0 ? (
+      {isLoading ? (
+        // Display a loading message or spinner
+        <div className="flex justify-center items-center">
+          <p className="text-gray-500">Loading your cart...</p>
+        </div>
+      ) : cart.length === 0 ? (
         <p className="text-gray-500">Your cart is empty.</p>
       ) : (
         <div className="space-y-4">
@@ -87,8 +109,8 @@ const Cart = () => {
                 <img
                   src={
                     isAuthenticated
-                      ? item.productId?.imageURL || '/placeholder.png'
-                      : item.imageURL || '/placeholder.png'
+                    ? item.productId?.imageURL || item.productId?.image || '/placeholder.png'
+                    : item.imageURL || item.image || '/placeholder.png'
                   }
                   alt={isAuthenticated ? item.productId?.name : item.name}
                   className="w-16 h-16 object-cover rounded"
@@ -169,7 +191,7 @@ const Cart = () => {
         </div>
       )}
 
-      {cart.length > 0 && (
+      {!isLoading && cart.length > 0 && (
         <div className="bg-white shadow-md p-4 mt-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Cart Summary</h2>
           <div className="flex justify-between mb-2">
