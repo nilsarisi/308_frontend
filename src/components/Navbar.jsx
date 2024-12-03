@@ -41,16 +41,68 @@ const Navbar = () => {
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
   const handleSearchChange = (e) => {
-    const query = e.target.value;
+    const query = e.target.value.trim();
     setSearchTerm(query);
 
     if (query) {
-      const filtered = allProducts.filter((product) =>
-        product.name
-          .split(' ')
-          .some((word) => word.toLowerCase().startsWith(query.toLowerCase()))
-      );
-      setFilteredProducts(filtered);
+      const maxResults = 5;
+      let matchedProducts = [];
+      const matchedProductIds = new Set();
+
+      // First, search for products where any word in the product name starts with the query
+      // Prioritize products where the first word matches, then second word, etc.
+
+      const nameWordPositions = {};
+
+      // Build a mapping of word positions to products
+      allProducts.forEach((product) => {
+        const nameWords = product.name.split(' ');
+        nameWords.forEach((word, index) => {
+          if (word.toLowerCase().startsWith(query.toLowerCase())) {
+            if (!nameWordPositions[index]) {
+              nameWordPositions[index] = [];
+            }
+            nameWordPositions[index].push(product);
+          }
+        });
+      });
+
+      // Sort the positions and add products to matchedProducts
+      const sortedPositions = Object.keys(nameWordPositions)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+      for (const position of sortedPositions) {
+        for (const product of nameWordPositions[position]) {
+          if (matchedProducts.length >= maxResults) break;
+          if (!matchedProductIds.has(product._id)) {
+            matchedProducts.push(product);
+            matchedProductIds.add(product._id);
+          }
+        }
+        if (matchedProducts.length >= maxResults) break;
+      }
+
+      // If fewer than maxResults, search in descriptions
+      if (matchedProducts.length < maxResults) {
+        allProducts.forEach((product) => {
+          if (matchedProducts.length >= maxResults) return;
+          if (matchedProductIds.has(product._id)) return;
+
+          if (
+            product.description &&
+            product.description
+              .toLowerCase()
+              .split(' ')
+              .some((word) => word.startsWith(query.toLowerCase()))
+          ) {
+            matchedProducts.push(product);
+            matchedProductIds.add(product._id);
+          }
+        });
+      }
+
+      setFilteredProducts(matchedProducts.slice(0, maxResults));
     } else {
       setFilteredProducts([]);
     }
@@ -139,7 +191,10 @@ const Navbar = () => {
                   <Link to="/order-status" className="p-2 hover:bg-gray-100 cursor-pointer">
                     Orders
                   </Link>
-                  <button onClick={handleLogout} className="p-2 hover:bg-gray-100 cursor-pointer">
+                  <button
+                    onClick={handleLogout}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                  >
                     Logout
                   </button>
                 </>
@@ -183,19 +238,35 @@ const Navbar = () => {
           <Link to="/" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Home
           </Link>
-          <Link to="/products?category=all-products" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/products?category=all-products"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             All Products
           </Link>
           <Link to="/discounts" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Discounts
           </Link>
-          <Link to="/products?category=food" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/products?category=food"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             Food
           </Link>
-          <Link to="/products?category=cosmetics" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/products?category=cosmetics"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             Cosmetics
           </Link>
-          <Link to="/products?category=cleaning" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/products?category=cleaning"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             Cleaning
           </Link>
           <Link to="/about" className="hover:text-blue-300" onClick={handleMenuToggle}>
