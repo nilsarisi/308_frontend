@@ -29,7 +29,7 @@ const Login = () => {
       const response = await login(email, password);
       if (response.success) {
         setSuccess('Login successful!');
-        navigate('/'); // Redirect to home page
+        navigate('/cart'); // Redirect to cart
       } else {
         setError(response.error || 'Error during login');
       }

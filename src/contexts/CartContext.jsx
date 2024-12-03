@@ -21,7 +21,6 @@ export const CartProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
 
-  // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
       try {

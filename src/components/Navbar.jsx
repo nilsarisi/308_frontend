@@ -21,7 +21,7 @@ const Navbar = () => {
   const { cart, isAuthenticated, logout } = useCart();
   const navigate = useNavigate();
 
-  const searchResultsRef = useRef(null);
+  const searchContainerRef = useRef(null);
   const accountMenuRef = useRef(null);
 
   // Fetch all products
@@ -41,16 +41,93 @@ const Navbar = () => {
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
   const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchTerm(query);
+    const inputValue = e.target.value;
+    setSearchTerm(inputValue);
 
+    const query = inputValue.trim();
     if (query) {
-      const filtered = allProducts.filter((product) =>
-        product.name
+      const maxResults = 5;
+      let matchedProducts = [];
+      const matchedProductIds = new Set();
+
+      const lowerCaseQueryWords = query
+        .toLocaleLowerCase('tr')
+        .split(' ')
+        .filter(Boolean);
+
+      // Prioritize products where the name words start with the query words in order
+      allProducts.forEach((product) => {
+        const lowerCaseNameWords = product.name
+          .toLocaleLowerCase('tr')
           .split(' ')
-          .some((word) => word.toLowerCase().startsWith(query.toLowerCase()))
-      );
-      setFilteredProducts(filtered);
+          .filter(Boolean);
+
+        let matchesInOrder = true;
+        for (let i = 0; i < lowerCaseQueryWords.length; i++) {
+          if (
+            !lowerCaseNameWords[i] ||
+            !lowerCaseNameWords[i].startsWith(lowerCaseQueryWords[i])
+          ) {
+            matchesInOrder = false;
+            break;
+          }
+        }
+
+        if (matchesInOrder && !matchedProductIds.has(product._id)) {
+          matchedProducts.push(product);
+          matchedProductIds.add(product._id);
+        }
+      });
+
+      // If not enough products, find products where all query words are present in the name, any order
+      if (matchedProducts.length < maxResults) {
+        allProducts.forEach((product) => {
+          if (matchedProducts.length >= maxResults) return;
+          if (matchedProductIds.has(product._id)) return;
+
+          const lowerCaseNameWords = product.name
+            .toLocaleLowerCase('tr')
+            .split(' ')
+            .filter(Boolean);
+
+          const allWordsMatch = lowerCaseQueryWords.every((queryWord) =>
+            lowerCaseNameWords.some((nameWord) => nameWord.startsWith(queryWord))
+          );
+
+          if (allWordsMatch) {
+            matchedProducts.push(product);
+            matchedProductIds.add(product._id);
+          }
+        });
+      }
+
+      // If still not enough, search in descriptions
+      if (matchedProducts.length < maxResults) {
+        allProducts.forEach((product) => {
+          if (matchedProducts.length >= maxResults) return;
+          if (matchedProductIds.has(product._id)) return;
+
+          if (product.description) {
+            const lowerCaseDescriptionWords = product.description
+              .toLocaleLowerCase('tr')
+              .split(' ')
+              .filter(Boolean);
+
+            const allWordsMatch = lowerCaseQueryWords.every((queryWord) =>
+              lowerCaseDescriptionWords.some((descWord) =>
+                descWord.startsWith(queryWord)
+              )
+            );
+
+            if (allWordsMatch) {
+              matchedProducts.push(product);
+              matchedProductIds.add(product._id);
+            }
+          }
+        });
+      }
+
+      setFilteredProducts(matchedProducts.slice(0, maxResults));
     } else {
       setFilteredProducts([]);
     }
@@ -69,6 +146,12 @@ const Navbar = () => {
   const handleClickOutside = (e) => {
     if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) {
       setAccountMenuVisible(false);
+    }
+    if (
+      searchContainerRef.current &&
+      !searchContainerRef.current.contains(e.target)
+    ) {
+      setFilteredProducts([]);
     }
   };
 
@@ -90,7 +173,10 @@ const Navbar = () => {
         <h1 className="font-luckiest-guy text-4xl">Vegan Eats</h1>
       </div>
 
-      <div className="relative flex items-center gap-2 border rounded-lg p-2 max-w-md shadow-md">
+      <div
+        ref={searchContainerRef}
+        className="relative flex items-center gap-2 border rounded-lg p-2 max-w-md shadow-md"
+      >
         <AiOutlineSearch className="w-6 h-6 text-gray-300 cursor-pointer" />
         <input
           type="text"
@@ -101,7 +187,6 @@ const Navbar = () => {
         />
         {searchTerm && filteredProducts.length > 0 && (
           <div
-            ref={searchResultsRef}
             className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-lg mt-2 p-4 z-10"
           >
             <p className="text-gray-600 font-semibold">Search Results:</p>
@@ -139,7 +224,10 @@ const Navbar = () => {
                   <Link to="/order-status" className="p-2 hover:bg-gray-100 cursor-pointer">
                     Orders
                   </Link>
-                  <button onClick={handleLogout} className="p-2 hover:bg-gray-100 cursor-pointer">
+                  <button
+                    onClick={handleLogout}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                  >
                     Logout
                   </button>
                 </>
@@ -183,19 +271,35 @@ const Navbar = () => {
           <Link to="/" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Home
           </Link>
-          <Link to="/products?category=all-products" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/products?category=all-products"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             All Products
           </Link>
           <Link to="/discounts" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Discounts
           </Link>
-          <Link to="/products?category=food" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/products?category=food"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             Food
           </Link>
-          <Link to="/products?category=cosmetics" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/products?category=cosmetics"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             Cosmetics
           </Link>
-          <Link to="/products?category=cleaning" className="hover:text-blue-300" onClick={handleMenuToggle}>
+          <Link
+            to="/products?category=cleaning"
+            className="hover:text-blue-300"
+            onClick={handleMenuToggle}
+          >
             Cleaning
           </Link>
           <Link to="/about" className="hover:text-blue-300" onClick={handleMenuToggle}>
@@ -208,3 +312,5 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+

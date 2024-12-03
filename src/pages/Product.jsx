@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import axios from 'axios';
 
@@ -34,6 +34,7 @@ const Product = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const { addProductToCart, user, isAuthenticated } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,11 +85,6 @@ const Product = () => {
       return;
     }
 
-    if (!newRating || newRating < 1 || newRating > 5) {
-      alert('Please provide a valid rating between 1 and 5.');
-      return;
-    }
-
     try {
       // Post feedback
       const response = await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
@@ -98,19 +94,35 @@ const Product = () => {
         rating: newRating,
       });
 
-      // Alert the user
-      alert('Your comment will be reviewed before publishing! Thank you for your feedback.');
+      if (newComment) {
+        alert('Your comment will be reviewed before publishing! Thank you for your feedback.');
+      }
+
+      if (newRating) {
+        alert('Your rating is published. Thank you for your rating.');
+      }
 
       // Update comments and ratings state with the new feedback
-      setComments([...comments, response.data.feedback.newComment]);
-      setRatings([...ratings, response.data.feedback.newRating]);
+      if (newComment) {
+        setComments([...comments, response.data.product.comments.pop()]);
+      }
+      if (newRating) {
+        setRatings([...ratings, response.data.product.ratings.pop()]);
+      }
 
       // Reset form fields
       setNewComment('');
       setNewRating(0);
+
+      // Reroute to the same page to refresh the data
+      navigate(0);
     } catch (err) {
-      console.error('Failed to add feedback:', err.response?.data || err.message);
-      alert('Failed to add feedback');
+      if (err.response && err.response.data) {
+        alert(err.response.data.error);
+      } else {
+        console.error('Failed to add feedback:', err.message);
+        alert('Failed to add feedback');
+      }
     }
   };
 
@@ -235,22 +247,24 @@ const Product = () => {
       </div>
 
       <div className="mt-8">
-        <h2 className="text-2xl font-bold">Comments and Ratings</h2>
-        {comments.length > 0 ? (
-          comments.map((item) => {
-            const rating = ratings.find(rating => rating.user.toString() === item.user.toString())?.rating || 'Not rated';
-            return (
-              <div key={item._id} className="border p-4 rounded mb-2">
-                <p>Rating (1-5): {renderStars(rating)}</p>
-                <p>{item.username}</p>
-                <p>{item.text}</p>
-              </div>
-            );
-          })
-        ) : (
-          <p>No comments or ratings yet.</p>
-        )}
-      </div>
+  <h2 className="text-2xl font-bold">Comments and Ratings</h2>
+  {comments.length > 0 ? (
+    comments
+      .filter((item) => item.isVisible)
+      .map((item) => {
+        const rating = ratings.find(rating => rating.user.toString() === item.user.toString())?.rating || 'Not rated';
+        return (
+          <div key={item._id} className="border p-4 rounded mb-2">
+            <p>Rating (1-5): {renderStars(rating)}</p>
+            <p>{item.username}</p>
+            <p>{item.text}</p>
+          </div>
+        );
+      })
+  ) : (
+    <p>No comments or ratings yet.</p>
+  )}
+</div>
 
       <div className="mt-8">
         <h2 className="text-xl font-bold">Add Your Feedback</h2>
