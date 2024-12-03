@@ -84,11 +84,6 @@ const Product = () => {
       return;
     }
 
-    if (!newRating || newRating < 1 || newRating > 5) {
-      alert('Please provide a valid rating between 1 and 5.');
-      return;
-    }
-
     try {
       // Post feedback
       const response = await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
@@ -98,19 +93,35 @@ const Product = () => {
         rating: newRating,
       });
 
-      // Alert the user
-      alert('Your comment will be reviewed before publishing! Thank you for your feedback.');
+      if (newComment) {
+        alert('Your comment will be reviewed before publishing! Thank you for your feedback.');
+      }
+
+      if (newRating) {
+        alert('Your rating is published. Thank you for your rating.');
+      }
 
       // Update comments and ratings state with the new feedback
-      setComments([...comments, response.data.feedback.newComment]);
-      setRatings([...ratings, response.data.feedback.newRating]);
+      if (newComment) {
+        setComments([...comments, response.data.product.comments.pop()]);
+      }
+      if (newRating) {
+        setRatings([...ratings, response.data.product.ratings.pop()]);
+      }
 
       // Reset form fields
       setNewComment('');
       setNewRating(0);
+
+      // Reroute to the same page to refresh the data
+      navigate(0);
     } catch (err) {
-      console.error('Failed to add feedback:', err.response?.data || err.message);
-      alert('Failed to add feedback');
+      if (err.response && err.response.data) {
+        alert(err.response.data.error);
+      } else {
+        console.error('Failed to add feedback:', err.message);
+        alert('Failed to add feedback');
+      }
     }
   };
 
