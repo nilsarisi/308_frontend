@@ -21,7 +21,7 @@ const Navbar = () => {
   const { cart, isAuthenticated, logout } = useCart();
   const navigate = useNavigate();
 
-  const searchResultsRef = useRef(null);
+  const searchContainerRef = useRef(null);
   const accountMenuRef = useRef(null);
 
   // Fetch all products
@@ -41,63 +41,88 @@ const Navbar = () => {
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
   const handleSearchChange = (e) => {
-    const query = e.target.value.trim();
-    setSearchTerm(query);
+    const inputValue = e.target.value;
+    setSearchTerm(inputValue);
 
+    const query = inputValue.trim();
     if (query) {
       const maxResults = 5;
       let matchedProducts = [];
       const matchedProductIds = new Set();
 
-      // First, search for products where any word in the product name starts with the query
-      // Prioritize products where the first word matches, then second word, etc.
+      const lowerCaseQueryWords = query
+        .toLocaleLowerCase('tr')
+        .split(' ')
+        .filter(Boolean);
 
-      const nameWordPositions = {};
-
-      // Build a mapping of word positions to products
+      // Prioritize products where the name words start with the query words in order
       allProducts.forEach((product) => {
-        const nameWords = product.name.split(' ');
-        nameWords.forEach((word, index) => {
-          if (word.toLowerCase().startsWith(query.toLowerCase())) {
-            if (!nameWordPositions[index]) {
-              nameWordPositions[index] = [];
-            }
-            nameWordPositions[index].push(product);
-          }
-        });
-      });
+        const lowerCaseNameWords = product.name
+          .toLocaleLowerCase('tr')
+          .split(' ')
+          .filter(Boolean);
 
-      // Sort the positions and add products to matchedProducts
-      const sortedPositions = Object.keys(nameWordPositions)
-        .map(Number)
-        .sort((a, b) => a - b);
-
-      for (const position of sortedPositions) {
-        for (const product of nameWordPositions[position]) {
-          if (matchedProducts.length >= maxResults) break;
-          if (!matchedProductIds.has(product._id)) {
-            matchedProducts.push(product);
-            matchedProductIds.add(product._id);
+        let matchesInOrder = true;
+        for (let i = 0; i < lowerCaseQueryWords.length; i++) {
+          if (
+            !lowerCaseNameWords[i] ||
+            !lowerCaseNameWords[i].startsWith(lowerCaseQueryWords[i])
+          ) {
+            matchesInOrder = false;
+            break;
           }
         }
-        if (matchedProducts.length >= maxResults) break;
-      }
 
-      // If fewer than maxResults, search in descriptions
+        if (matchesInOrder && !matchedProductIds.has(product._id)) {
+          matchedProducts.push(product);
+          matchedProductIds.add(product._id);
+        }
+      });
+
+      // If not enough products, find products where all query words are present in the name, any order
       if (matchedProducts.length < maxResults) {
         allProducts.forEach((product) => {
           if (matchedProducts.length >= maxResults) return;
           if (matchedProductIds.has(product._id)) return;
 
-          if (
-            product.description &&
-            product.description
-              .toLowerCase()
-              .split(' ')
-              .some((word) => word.startsWith(query.toLowerCase()))
-          ) {
+          const lowerCaseNameWords = product.name
+            .toLocaleLowerCase('tr')
+            .split(' ')
+            .filter(Boolean);
+
+          const allWordsMatch = lowerCaseQueryWords.every((queryWord) =>
+            lowerCaseNameWords.some((nameWord) => nameWord.startsWith(queryWord))
+          );
+
+          if (allWordsMatch) {
             matchedProducts.push(product);
             matchedProductIds.add(product._id);
+          }
+        });
+      }
+
+      // If still not enough, search in descriptions
+      if (matchedProducts.length < maxResults) {
+        allProducts.forEach((product) => {
+          if (matchedProducts.length >= maxResults) return;
+          if (matchedProductIds.has(product._id)) return;
+
+          if (product.description) {
+            const lowerCaseDescriptionWords = product.description
+              .toLocaleLowerCase('tr')
+              .split(' ')
+              .filter(Boolean);
+
+            const allWordsMatch = lowerCaseQueryWords.every((queryWord) =>
+              lowerCaseDescriptionWords.some((descWord) =>
+                descWord.startsWith(queryWord)
+              )
+            );
+
+            if (allWordsMatch) {
+              matchedProducts.push(product);
+              matchedProductIds.add(product._id);
+            }
           }
         });
       }
@@ -122,6 +147,12 @@ const Navbar = () => {
     if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) {
       setAccountMenuVisible(false);
     }
+    if (
+      searchContainerRef.current &&
+      !searchContainerRef.current.contains(e.target)
+    ) {
+      setFilteredProducts([]);
+    }
   };
 
   useEffect(() => {
@@ -142,7 +173,10 @@ const Navbar = () => {
         <h1 className="font-luckiest-guy text-4xl">Vegan Eats</h1>
       </div>
 
-      <div className="relative flex items-center gap-2 border rounded-lg p-2 max-w-md shadow-md">
+      <div
+        ref={searchContainerRef}
+        className="relative flex items-center gap-2 border rounded-lg p-2 max-w-md shadow-md"
+      >
         <AiOutlineSearch className="w-6 h-6 text-gray-300 cursor-pointer" />
         <input
           type="text"
@@ -153,7 +187,6 @@ const Navbar = () => {
         />
         {searchTerm && filteredProducts.length > 0 && (
           <div
-            ref={searchResultsRef}
             className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-lg mt-2 p-4 z-10"
           >
             <p className="text-gray-600 font-semibold">Search Results:</p>
@@ -279,3 +312,5 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
