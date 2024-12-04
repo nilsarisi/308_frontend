@@ -126,6 +126,41 @@ const Product = () => {
     }
   };
 
+  const handleAddRating = async () => {
+    if (!isAuthenticated) {
+      alert('You must be logged in to leave a rating.');
+      return;
+    }
+
+    try {
+      // Post rating
+      const response = await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
+        userId: user.id,
+        username: user.name,
+        text: '',
+        rating: newRating,
+      });
+
+      alert('Your rating is published. Thank you for your rating.');
+
+      // Update ratings state with the new rating
+      setRatings([...ratings, response.data.product.ratings.pop()]);
+
+      // Reset form fields
+      setNewRating(0);
+
+      // Reroute to the same page to refresh the data
+      navigate(0);
+    } catch (err) {
+      if (err.response && err.response.data) {
+        alert(err.response.data.error);
+      } else {
+        console.error('Failed to add rating:', err.message);
+        alert('Failed to add rating');
+      }
+    }
+  };
+
   const increaseQuantity = () => setQuantity(quantity + 1);
   const decreaseQuantity = () => {
     if (quantity > 1) setQuantity(quantity - 1);
@@ -181,7 +216,26 @@ const Product = () => {
           )}
           <div className="mt-4">
             <p className="text-lg font-bold">Average Rating: {averageRating} {renderStars(averageRating)}</p>
-            <p className="text-lg font-bold">Your Rating: {userRating} {userRating !== 'Not rated yet' && renderStars(userRating)}</p>
+            <div className="flex items-center mt-2">
+              <p className="text-lg font-bold">Your Rating: {userRating}</p>
+              <div className="flex space-x-2 ml-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setNewRating(star)}
+                    className={`p-2 rounded ${newRating === star ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
+                  >
+                    {star}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={handleAddRating}
+                className="bg-blue-500 text-white p-2 rounded ml-4"
+              >
+                Submit Rating
+              </button>
+            </div>
           </div>
           <div className="flex items-center mt-4">
             <button
@@ -247,24 +301,20 @@ const Product = () => {
       </div>
 
       <div className="mt-8">
-  <h2 className="text-2xl font-bold">Comments and Ratings</h2>
-  {comments.length > 0 ? (
-    comments
-      .filter((item) => item.isVisible)
-      .map((item) => {
-        const rating = ratings.find(rating => rating.user.toString() === item.user.toString())?.rating || 'Not rated';
-        return (
-          <div key={item._id} className="border p-4 rounded mb-2">
-            <p>Rating (1-5): {renderStars(rating)}</p>
-            <p>{item.username}</p>
-            <p>{item.text}</p>
-          </div>
-        );
-      })
-  ) : (
-    <p>No comments or ratings yet.</p>
-  )}
-</div>
+        <h2 className="text-2xl font-bold">Comments</h2>
+        {comments.length > 0 ? (
+          comments
+            .filter((item) => item.isVisible) // Filter comments to only show those with isVisible set to true
+            .map((item) => (
+              <div key={item._id} className="border p-4 rounded mb-2">
+                <p>{item.username}</p>
+                <p>{item.text}</p>
+              </div>
+            ))
+        ) : (
+          <p>No comments.</p>
+        )}
+      </div>
 
       <div className="mt-8">
         <h2 className="text-xl font-bold">Add Your Feedback</h2>
@@ -274,26 +324,15 @@ const Product = () => {
           onChange={(e) => setNewComment(e.target.value)}
           className="w-full border rounded p-2 mb-4"
         />
-        <div className="flex space-x-2 mb-4">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              onClick={() => setNewRating(star)}
-              className={`p-2 rounded ${newRating === star ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
-            >
-              {star}
-            </button>
-          ))}
-        </div>
         <button
           onClick={handleAddFeedback}
           className="bg-blue-500 text-white p-2 rounded"
         >
-          Submit
+          Submit Comment
         </button>
       </div>
     </div>
   );
 };
 
-export default Product; 
+export default Product;
