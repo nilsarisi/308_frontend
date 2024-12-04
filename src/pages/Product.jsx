@@ -35,7 +35,7 @@ const Product = () => {
   const [quantity, setQuantity] = useState(1);
   const { addProductToCart, user, isAuthenticated } = useCart();
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -208,11 +208,22 @@ const Product = () => {
           <h1 className="text-3xl font-bold">{product.name}</h1>
           <p className="text-xl text-green-700">₺{product.price}</p>
           <p className="mt-2">{product.description}</p>
+          <div className="mt-4">
+            <p className="mt-2 text-sm">
+              <span className="font-semibold">Serial Number:</span> {product.serialNumber}
+            </p>
+            <p className="mt-2 text-sm">
+              <span className="font-semibold">Distributor:</span> {product.distributor}
+            </p>
+            <p className="mt-2 text-sm">
+              <span className="font-semibold">Expiration Date:</span> {product.expirationDate.slice(0, 7)}
+            </p>
+          </div>
           <p className={`mt-4 ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
             {product.stock > 0 ? 'In stock' : 'Out of stock'}
           </p>
           {product.stock >= 0 && (
-            <p className="text-sm text-gray-500 mt-1">Available: {product.stock}</p>
+            <p className="text-sm text-gray-500 mt-1 font-semibold">Available: {product.stock}</p>
           )}
           <div className="mt-4">
             <p className="text-lg font-bold">Average Rating: {averageRating} {renderStars(averageRating)}</p>
