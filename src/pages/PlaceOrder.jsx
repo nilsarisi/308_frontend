@@ -80,9 +80,9 @@ const PlaceOrder = () => {
         { shippingInfo },
         { headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` } }
       );
-
+  
       const { orderId } = orderResponse.data;
-
+  
       // Step 2: Make the payment
       const paymentResponse = await axios.post(`${backendUrl}/api/payment/mock-payment`, {
         cardNumber: paymentInfo.cardNumber,
@@ -90,9 +90,9 @@ const PlaceOrder = () => {
         cvv: paymentInfo.cvv,
         amount: totalPrice,
       });
-
+  
       const { transactionId } = paymentResponse.data;
-
+  
       // Step 3: Generate and send invoice
       await axios.post(`${backendUrl}/api/payment/generate-invoice`, {
         user: {
@@ -106,10 +106,18 @@ const PlaceOrder = () => {
         },
         transactionId,
       });
-
-      // Clear the cart and navigate to the success page
+  
+      // Clear the cart and navigate to the success page with order data
       clearCart();
-      navigate("/order-success");
+      navigate("/order-success", {
+        state: {
+          orderNumber: orderId,
+          status: "Processing",
+          estimatedDelivery: "Within 5-7 business days",
+          items: cart,
+          totalPrice,
+        },
+      });
     } catch (err) {
       console.error("Error processing order:", err.response?.data || err.message);
       setError(
