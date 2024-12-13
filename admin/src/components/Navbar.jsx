@@ -1,85 +1,65 @@
-import React from "react";
-import logo from "../assets/logo.png"; // Replace with your actual logo path
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
+import { AiOutlineMenu, AiOutlineClose, AiOutlineDashboard, AiOutlineUnorderedList } from "react-icons/ai";
 
 const Navbar = () => {
+    const [menuVisible, setMenuVisible] = useState(false);
     const navigate = useNavigate();
 
+    const handleMenuToggle = () => setMenuVisible(!menuVisible);
+
     const handleLogout = () => {
-        // Add logout logic here
         console.log("Logged out");
         navigate("/login");
     };
 
     return (
-        <nav style={styles.navbar}>
-            <div style={styles.logoSection}>
-                <img src={logo} alt="Store Logo" style={styles.logo} />
-                <h1 style={styles.title}>Admin Dashboard</h1>
+        <nav className="flex items-center justify-between p-4 bg-gray-900 text-white shadow-xl relative">
+            {/* Navbar Left Section */}
+            <div className="flex items-center space-x-3">
+                <AiOutlineMenu onClick={handleMenuToggle} className="w-6 h-6 cursor-pointer" />
+                <img src={logo} alt="Logo" className="w-14 h-16" />
+                <h1 className="text-2xl font-bold">Admin Dashboard</h1>
             </div>
-            <div style={styles.navLinks}>
-                <button onClick={() => navigate("/admin/products")} style={styles.navButton}>
-                    Products
-                </button>
-                <button onClick={() => navigate("/admin/orders")} style={styles.navButton}>
-                    Orders
-                </button>
-                <button onClick={() => navigate("/admin/users")} style={styles.navButton}>
-                    Users
-                </button>
-                <button onClick={handleLogout} style={styles.logoutButton}>
+
+            {/* Navbar Right Section */}
+            <div className="flex space-x-4">
+                <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                >
                     Logout
                 </button>
             </div>
+
+            {/* Collapsible Sidebar */}
+            <div
+                className={`fixed top-0 left-0 h-full w-64 bg-gray-800 text-white shadow-lg z-30 transform ${
+                    menuVisible ? "translate-x-0" : "-translate-x-full"
+                } transition-transform duration-300 ease-in-out`}
+            >
+                <AiOutlineClose
+                    onClick={handleMenuToggle}
+                    className="w-6 h-6 cursor-pointer text-white m-4"
+                />
+                <div className="flex flex-col space-y-4 p-4">
+                    <Link to="/products" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
+                        <AiOutlineUnorderedList className="w-5 h-5" />
+                        Products
+                    </Link>
+                    <Link to="/orders" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
+                        <AiOutlineDashboard className="w-5 h-5" />
+                        Orders
+                    </Link>
+                    <Link to="/invoice" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
+                        <AiOutlineDashboard className="w-5 h-5" />
+                        Invoice
+                    </Link>
+                </div>
+            </div>
         </nav>
     );
-};
-
-const styles = {
-    navbar: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "10px 20px",
-        backgroundColor: "#2c3e50",
-        color: "white",
-    },
-    logoSection: {
-        display: "flex",
-        alignItems: "center",
-    },
-    logo: {
-        width: "50px",
-        height: "50px",
-        marginRight: "10px",
-    },
-    title: {
-        fontSize: "1.5em",
-        fontWeight: "bold",
-    },
-    navLinks: {
-        display: "flex",
-        alignItems: "center",
-        gap: "15px",
-    },
-    navButton: {
-        padding: "10px 15px",
-        fontSize: "1em",
-        cursor: "pointer",
-        backgroundColor: "#34495e",
-        border: "none",
-        borderRadius: "5px",
-        color: "white",
-    },
-    logoutButton: {
-        padding: "10px 15px",
-        fontSize: "1em",
-        cursor: "pointer",
-        backgroundColor: "#e74c3c",
-        border: "none",
-        borderRadius: "5px",
-        color: "white",
-    },
 };
 
 export default Navbar;
