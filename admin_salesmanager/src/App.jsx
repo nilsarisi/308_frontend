@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Products from "./pages/Products";
 import Product from "./pages/Product";
-import Orders from "./pages/Orders";
+import Revenues from "./pages/Revenues";
 import Invoice from "./pages/Invoice";
 import { SalesManagerProvider } from "./contexts/SalesManager";
 
@@ -18,7 +18,7 @@ const App = () => {
                 <Routes>
                     <Route path="/products" element={<Products />} />
                     <Route path="/product/:productID" element={<Product />} />
-                    <Route path="/orders" element={<Orders />} />
+                    <Route path="/revenues" element={<Revenues />} />
                     <Route path="/invoice" element={<Invoice />} />
                 </Routes>
             </main>
