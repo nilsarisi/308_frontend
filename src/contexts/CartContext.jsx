@@ -111,7 +111,7 @@ export const CartProvider = ({ children }) => {
       // Refresh the cart
       await viewCart();
 
-      return { success: true };
+      return { success: true, user: completeUser};
     } catch (error) {
       console.error('Login failed:', error.message);
       return { success: false, error: error.message };

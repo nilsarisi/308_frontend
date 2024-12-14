@@ -1,5 +1,3 @@
-// Login.jsx
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
@@ -29,7 +27,18 @@ const Login = () => {
       const response = await login(email, password);
       if (response.success) {
         setSuccess('Login successful!');
-        navigate('/cart'); // Redirect to cart
+        console.log(response.user);
+
+        // Redirect based on user role
+        const userRole = response.user.role;
+        console.log(response);
+        if (userRole === 'sales_manager') {
+          window.location.href = 'http://localhost:5174'; // Redirect to the sales manager host
+        } else if(userRole === 'product_manager') {
+          window.location.href = 'http://localhost:5175';
+        }else {
+          navigate('/cart'); // Redirect to cart for other users
+        }
       } else {
         setError(response.error || 'Error during login');
       }
