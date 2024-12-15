@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import products_icon from "../assets/products_icon.png"; 
 import invoice_icon from "../assets/settings_icon.png"; 
 import orders_icon from "../assets/orders_icon.png";
+import comments_icon from "../assets/comments_icon.png";
 
 const Sidebar = () => {
     return (
@@ -19,6 +20,10 @@ const Sidebar = () => {
                 <NavLink to="/orders" style={styles.navLink} activeStyle={styles.activeNavLink}>
                     <img src={orders_icon} alt="Orders" style={styles.icon} />
                     <span>Orders</span>
+                </NavLink>
+                <NavLink to="/pending-comments" style={styles.navLink} activeStyle={styles.activeNavLink}>
+                    <img src={comments_icon} alt="Comments" style={styles.icon} />
+                    <span>Pending Comments</span>
                 </NavLink>
             </nav>
         </div>

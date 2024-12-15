@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
-import { AiOutlineMenu, AiOutlineClose, AiOutlineDashboard, AiOutlineUnorderedList } from "react-icons/ai";
+import { AiOutlineMenu, AiOutlineClose, AiOutlineDashboard, AiOutlineUnorderedList, AiOutlineComment } from "react-icons/ai";
 
 const Navbar = () => {
     const [menuVisible, setMenuVisible] = useState(false);
@@ -55,6 +55,10 @@ const Navbar = () => {
                     <Link to="/invoice" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
                         <AiOutlineDashboard className="w-5 h-5" />
                         Invoice
+                    </Link>
+                    <Link to="/comment-moderation" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
+                        <AiOutlineComment className="w-5 h-5" />
+                        Comment Moderation
                     </Link>
                 </div>
             </div>
