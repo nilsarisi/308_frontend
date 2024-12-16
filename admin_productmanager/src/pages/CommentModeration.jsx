@@ -25,7 +25,7 @@ const CommentModeration = () => {
 
   const handleApprove = async (productId, commentId) => {
     try {
-      await axios.put(`${backendUrl}/api/products/comments/${productId}/feedback/${commentId}/approve`);
+      await axios.put(`${backendUrl}/api/products/comments/${productId}/${commentId}/approve`);
       setComments(comments.filter(comment => comment.commentId !== commentId));
     } catch (err) {
       setError("Failed to approve comment");
@@ -34,7 +34,7 @@ const CommentModeration = () => {
 
   const handleReject = async (productId, commentId) => {
     try {
-      await axios.delete(`${backendUrl}/api/products/comments/${productId}/comments/${commentId}/reject`);
+      await axios.delete(`${backendUrl}/api/products/comments/${productId}/${commentId}/reject`);
       setComments(comments.filter(comment => comment.commentId !== commentId));
     } catch (err) {
       setError("Failed to reject comment");
