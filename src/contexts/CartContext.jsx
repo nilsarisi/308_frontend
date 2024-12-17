@@ -1,25 +1,22 @@
-// CartContext.jsx
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode'; // Make sure this is jwt-decode and not { jwtDecode }
 
-// Create the CartContext
 const CartContext = createContext();
 
-// Custom hook to access CartContext
 export const useCart = () => useContext(CartContext);
 
-// CartProvider component
 export const CartProvider = ({ children }) => {
-  const backendUrl = 'http://localhost:5001'; // Replace with your backend API URL
+  const backendUrl = 'http://localhost:5001'; 
 
-  // States for cart, products, authentication, and user data
   const [cart, setCart] = useState([]);
   const [products, setProducts] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
+
+  // NEW: Favorites state
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -44,14 +41,27 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Save cart to localStorage for unauthenticated users
+  // Save cart and favorites to localStorage for unauthenticated users
   useEffect(() => {
     if (!isAuthenticated) {
       localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem('favorites', JSON.stringify(favorites));
     }
-  }, [cart, isAuthenticated]);
+  }, [cart, favorites, isAuthenticated]);
 
-  // Authentication Functions
+  // Load favorites from localStorage if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const storedFavorites = JSON.parse(localStorage.getItem('favorites'));
+      if (storedFavorites) {
+        setFavorites(storedFavorites);
+      }
+    } else {
+      // If authenticated and you have a backend for favorites, fetch them here
+      // Otherwise, leave as is.
+    }
+  }, [isAuthenticated]);
+
   const signup = async (name, email, password, address) => {
     try {
       await axios.post(`${backendUrl}/api/users/signup`, {
@@ -71,47 +81,40 @@ export const CartProvider = ({ children }) => {
     try {
       const guestCart = JSON.parse(localStorage.getItem('cart')) || [];
       const guestId = localStorage.getItem('guestId');
-
-      const response = await axios.post(
-        `${backendUrl}/api/users/login`,
-        { email, password },
-        { withCredentials: true }
-      );
+  
+      const response = await axios.post(`${backendUrl}/api/users/login`, { email, password }, { withCredentials: true });
       const { accessToken, user } = response.data;
-
-      // Decode token and add user ID
+  
+      // If user is a sales manager, do not log them into the main site
+      if (user.role === 'sales_manager') {
+        return { success: true, user };
+      }
+  
+      // Otherwise, proceed as normal
       const decodedToken = jwtDecode(accessToken);
       const completeUser = { ...user, id: decodedToken.id };
-
-      // Save data
+  
       setUser(completeUser);
       setAccessToken(accessToken);
       setIsAuthenticated(true);
       localStorage.setItem('user', JSON.stringify(completeUser));
       localStorage.setItem('accessToken', accessToken);
-
-      // Merge guest cart with authenticated user's cart
+  
+      // Merge guest cart
       if (guestCart.length > 0) {
-        // Send guest cart items to backend to merge
-        await axios.post(
-          `${backendUrl}/api/cart/merge`,
-          { guestCart },
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
-
-        // Clear guest cart from local storage
+        await axios.post(`${backendUrl}/api/cart/merge`, { guestCart }, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
         localStorage.removeItem('cart');
       }
-
-      // Remove guestId from local storage
+  
       if (guestId) {
         localStorage.removeItem('guestId');
       }
-
-      // Refresh the cart
+  
       await viewCart();
-
-      return { success: true, user: completeUser};
+  
+      return { success: true, user: completeUser };
     } catch (error) {
       console.error('Login failed:', error.message);
       return { success: false, error: error.message };
@@ -125,14 +128,16 @@ export const CartProvider = ({ children }) => {
       setAccessToken(null);
       setIsAuthenticated(false);
       setCart([]);
+      setFavorites([]);
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('favorites');
     } catch (error) {
       console.error('Logout failed:', error.message);
     }
   };
 
-  // Cart Management Functions
+  // Cart Management
   const addProductToCart = async (product) => {
     if (product.stock <= 0) {
       alert('This product is out of stock.');
@@ -183,9 +188,6 @@ export const CartProvider = ({ children }) => {
   };
 
   const updateProductQuantity = async (productId, newQuantity) => {
-    console.log(
-      `updateProductQuantity called with productId: ${productId}, newQuantity: ${newQuantity}`
-    );
     if (isAuthenticated) {
       try {
         const response = await axios.put(
@@ -229,35 +231,69 @@ export const CartProvider = ({ children }) => {
   const viewCart = async () => {
     if (isAuthenticated) {
       try {
-        console.log('Fetching cart for authenticated user...');
-
         const response = await axios.get(`${backendUrl}/api/cart/view`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        console.log('Cart fetched successfully:', response.data);
-        setCart(response.data.items); // Update the cart state with items
+        setCart(response.data.items); 
       } catch (error) {
         console.error('Failed to fetch cart:', error.message, error.response?.data);
       }
     } else {
-      try {
-        console.log('Fetching cart for guest user...');
-
-        const localCart = JSON.parse(localStorage.getItem('cart'));
-        if (localCart) {
-          console.log('Cart loaded from local storage:', localCart);
-          setCart(localCart);
-        } else {
-          console.log('No cart found for guest user in local storage.');
-          setCart([]);
-        }
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
+      const localCart = JSON.parse(localStorage.getItem('cart'));
+      if (localCart) {
+        setCart(localCart);
+      } else {
+        setCart([]);
       }
     }
   };
 
-  // Provide context values
+  // Favorites Management Functions
+  const addToFavorites = async (product) => {
+    if (isAuthenticated) {
+      // await axios.post(`${backendUrl}/api/favorites/add`, { productId: product.id }, {
+      //   headers: { Authorization: `Bearer ${accessToken}` },
+      // });
+      // Then fetch updated favorites from the backend.
+      
+      // If no backend, just store in state for now:
+      setFavorites((prev) => {
+        const alreadyFavorite = prev.find((item) => item.id === product.id);
+        if (alreadyFavorite) return prev; // Avoid duplicates
+        return [...prev, product];
+      });
+    } else {
+      // Not authenticated, store in localStorage
+      setFavorites((prev) => {
+        const updated = [...prev];
+        const alreadyFavorite = updated.find((item) => item.id === product.id);
+        if (!alreadyFavorite) {
+          updated.push(product);
+        }
+        localStorage.setItem('favorites', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
+  const removeFromFavorites = async (productId) => {
+    if (isAuthenticated) {
+      // await axios.delete(`${backendUrl}/api/favorites/remove`, {
+      //   data: { productId },
+      //   headers: { Authorization: `Bearer ${accessToken}` },
+      // });
+      // Fetch updated favorites if needed.
+      
+      setFavorites((prev) => prev.filter((item) => item.id !== productId));
+    } else {
+      setFavorites((prev) => {
+        const updated = prev.filter((item) => item.id !== productId);
+        localStorage.setItem('favorites', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -265,6 +301,7 @@ export const CartProvider = ({ children }) => {
         products,
         isAuthenticated,
         user,
+        favorites, // Provide favorites
         addProductToCart,
         removeProductFromCart,
         updateProductQuantity,
@@ -273,6 +310,8 @@ export const CartProvider = ({ children }) => {
         login,
         logout,
         signup,
+        addToFavorites,   // Provide addToFavorites
+        removeFromFavorites // Provide removeFromFavorites
       }}
     >
       {children}

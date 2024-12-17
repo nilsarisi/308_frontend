@@ -18,6 +18,7 @@ import './index.css';
 import OrderSuccess from './pages/OrderSuccess';
 import OrderStatus from './pages/OrderStatus';
 import Account from './pages/Account';
+import Favorites from './pages/Favorites';
 
 const App = () => {
   return (
@@ -41,6 +42,7 @@ const App = () => {
             <Route path="/products" element={<Products />} />
             <Route path="/category/:category" element={<Products />} />
             <Route path="/product/:productID" element={<Product />} />
+            <Route path="/favorites" element={<Favorites />} />
           </Routes>
         </main>
         <Footer />

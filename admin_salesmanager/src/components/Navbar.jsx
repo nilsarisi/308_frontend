@@ -2,16 +2,17 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { AiOutlineMenu, AiOutlineClose, AiOutlineDashboard, AiOutlineUnorderedList } from "react-icons/ai";
+import { useSalesManager } from "../contexts/SalesManager";
 
 const Navbar = () => {
     const [menuVisible, setMenuVisible] = useState(false);
     const navigate = useNavigate();
+    const {logout} = useSalesManager();
 
     const handleMenuToggle = () => setMenuVisible(!menuVisible);
 
     const handleLogout = () => {
-        console.log("Logged out");
-        navigate("/login");
+        window.location.href = 'http://localhost:5173/login';
     };
 
     return (

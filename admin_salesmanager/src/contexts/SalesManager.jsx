@@ -59,8 +59,21 @@ export const SalesManagerProvider = ({ children }) => {
         }
     };
 
+    const logout = async () => {
+        try {
+          await axios.post(`${backendUrl}/api/users/logout`, {}, { withCredentials: true });
+          setUser(null);
+          setAccessToken(null);
+          setIsAuthenticated(false);
+          localStorage.removeItem('user');
+          localStorage.removeItem('accessToken');
+        } catch (error) {
+          console.error('Logout failed:', error.message);
+        }
+    };
+
     return (
-        <SalesManagerContext.Provider value={{ products, loading, setPrice, applyDiscount }}>
+        <SalesManagerContext.Provider value={{ products, loading, setPrice, applyDiscount, logout }}>
             {children}
         </SalesManagerContext.Provider>
     );

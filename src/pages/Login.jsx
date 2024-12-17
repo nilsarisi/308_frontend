@@ -13,7 +13,7 @@ const Login = () => {
   const [success, setSuccess] = useState('');
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
@@ -27,17 +27,21 @@ const Login = () => {
       const response = await login(email, password);
       if (response.success) {
         setSuccess('Login successful!');
-        console.log(response.user);
-
-        // Redirect based on user role
+        
         const userRole = response.user.role;
-        console.log(response);
+        
+        // Assuming `response.user` contains `id`, `role`, and possibly `accessToken`
+        // If `login` returns the token as `response.user.accessToken` (or response.accessToken),
+        // use that. Otherwise, adjust based on how your `login` function returns data.
+        const accessToken = response.user.accessToken;
+        
         if (userRole === 'sales_manager') {
-          window.location.href = 'http://localhost:5174'; // Redirect to the sales manager host
-        } else if(userRole === 'product_manager') {
-          window.location.href = 'http://localhost:5175';
-        }else {
-          navigate('/cart'); // Redirect to cart for other users
+          // Pass the token in the URL (not recommended in production)
+          window.location.href = `http://localhost:5174?token=${encodeURIComponent(accessToken)}`;
+        } else if (userRole === 'product_manager') {
+          window.location.href = `http://localhost:5175?token=${encodeURIComponent(accessToken)}`;
+        } else {
+          navigate('/cart');
         }
       } else {
         setError(response.error || 'Error during login');
