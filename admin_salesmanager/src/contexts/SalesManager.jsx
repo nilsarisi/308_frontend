@@ -1,6 +1,7 @@
 // SalesManager.jsx - Context for Sales Manager
 import React, { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const SalesManagerContext = createContext();
 
@@ -29,11 +30,17 @@ export const SalesManagerProvider = ({ children }) => {
 
     // Function to set price for a product
     const setPrice = async (productId, newPrice) => {
+        const token = localStorage.getItem("accessToken");
         try {
-            const response = await axios.put(`${backendUrl}/api/products/${productId}/price`, { price: newPrice });
+            jwtDecode(token); 
+            const response = await axios.put(
+                `${backendUrl}/api/products/${productId}/price`,
+                { price: newPrice },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             setProducts((prevProducts) =>
                 prevProducts.map((product) =>
-                    product.id === productId ? { ...product, price: response.data.price } : product
+                    product._id === productId ? { ...product, price: response.data.price } : product
                 )
             );
         } catch (error) {
@@ -44,13 +51,20 @@ export const SalesManagerProvider = ({ children }) => {
     // Function to apply discount to a product
     const applyDiscount = async (productId, discountPercentage) => {
         try {
-            const response = await axios.put(`${backendUrl}/api/products/${productId}/discount`, {
-                discountPercentage,
-            });
+            const token = localStorage.getItem('accessToken'); 
+            const response = await axios.put(
+                `${backendUrl}/api/products/${productId}/discount`, 
+                { discountPercentage }, 
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, 
+                    },
+                }
+            );
             setProducts((prevProducts) =>
                 prevProducts.map((product) =>
-                    product.id === productId
-                        ? { ...product, price: response.data.price }
+                    product._id === productId 
+                        ? { ...product, price: response.data.price } // applies discount without refreshing
                         : product
                 )
             );
