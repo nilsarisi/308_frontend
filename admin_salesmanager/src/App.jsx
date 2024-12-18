@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
+import TokenHandler from './pages/TokenHandler';
 import Products from "./pages/Products";
 import Product from "./pages/Product";
 import Revenues from "./pages/Revenues";
@@ -15,6 +16,7 @@ const App = () => {
             <div className="bg-gray-50 min-h-screen">
                 <Navbar />
             <main className="flex-grow">
+                <TokenHandler />
                 <Routes>
                     <Route path="/products" element={<Products />} />
                     <Route path="/product/:productID" element={<Product />} />

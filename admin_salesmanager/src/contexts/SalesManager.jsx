@@ -31,8 +31,11 @@ export const SalesManagerProvider = ({ children }) => {
     // Function to set price for a product
     const setPrice = async (productId, newPrice) => {
         const token = localStorage.getItem("accessToken");
+        console.log("token: ", token);
         try {
+            
             jwtDecode(token); 
+            console.log("reached here");
             const response = await axios.put(
                 `${backendUrl}/api/products/${productId}/price`,
                 { price: newPrice },
