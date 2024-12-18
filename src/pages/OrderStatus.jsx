@@ -8,16 +8,15 @@ const OrderStatus = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
+  const [refundRequest, setRefundRequest] = useState(null); // To store the product for refund
 
   const fetchAllOrders = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) throw new Error("Authentication token is missing.");
-
       const response = await axios.get(`${backendUrl}/api/orders/all`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-
       setOrders(response.data);
     } catch (err) {
       console.error("Failed to fetch order details:", err.message);
@@ -25,7 +24,7 @@ const OrderStatus = () => {
     }
   };
 
-  const updateOrderStatus = async (orderId, newStatus) => {
+  const requestRefund = async (orderId, productId) => {
     try {
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) {
@@ -33,21 +32,18 @@ const OrderStatus = () => {
         return;
       }
 
-      await axios.put(
-        `${backendUrl}/api/orders/${orderId}/status`,
-        { status: newStatus },
+      const response = await axios.post(
+        `${backendUrl}/api/orders/${orderId}/refund`,
+        { productId },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
 
-      // Update the status locally for UI feedback
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.orderId === orderId ? { ...order, status: newStatus } : order
-        )
-      );
+      // Display a success message and refetch orders
+      alert("Refund request submitted successfully.");
+      fetchAllOrders();
     } catch (err) {
-      console.error("Failed to update order status:", err.message);
-      setError("Unable to update order status. Please try again.");
+      console.error("Failed to request refund:", err.response?.data || err.message);
+      setError("Unable to request a refund. Please try again.");
     }
   };
 
@@ -74,9 +70,17 @@ const OrderStatus = () => {
             </p>
             <h3 className="text-xl font-bold mt-6">Order Summary</h3>
             {order.products.map((item, index) => (
-              <p key={index}>
-                {item.name} x {item.quantity} - ₺{(item.price * item.quantity).toFixed(2)}
-              </p>
+              <div key={index} className="mt-2">
+                <p>
+                  {item.name} x {item.quantity} - ₺{(item.price * item.quantity).toFixed(2)}
+                </p>
+                <button
+                  className="mt-2 bg-red-500 text-white py-1 px-2 rounded"
+                  onClick={() => setRefundRequest({ orderId: order.orderId, productId: item.productId })}
+                >
+                  Request Refund
+                </button>
+              </div>
             ))}
             <p className="mt-4">
               <strong>Total Amount:</strong> ₺{order.totalAmount.toFixed(2)}
@@ -92,6 +96,36 @@ const OrderStatus = () => {
       >
         Back to Home
       </button>
+
+      {/* Refund Confirmation Modal */}
+      {refundRequest && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-md">
+            <h2 className="text-xl font-bold">Confirm Refund Request</h2>
+            <p className="mt-4">
+              Are you sure you want to request a refund for this product? This action is final and subject to store
+              policies.
+            </p>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setRefundRequest(null)}
+                className="bg-gray-300 text-gray-700 py-2 px-4 rounded mr-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  requestRefund(refundRequest.orderId, refundRequest.productId);
+                  setRefundRequest(null);
+                }}
+                className="bg-red-500 text-white py-2 px-4 rounded"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
