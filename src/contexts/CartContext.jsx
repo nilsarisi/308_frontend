@@ -14,8 +14,6 @@ export const CartProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
-
-  // NEW: Favorites state
   const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
@@ -57,10 +55,22 @@ export const CartProvider = ({ children }) => {
         setFavorites(storedFavorites);
       }
     } else {
-      // If authenticated and you have a backend for favorites, fetch them here
-      // Otherwise, leave as is.
+      fetchFavorites();
     }
   }, [isAuthenticated]);
+
+  const fetchFavorites = async () => {
+    try {
+      if (isAuthenticated) {
+        const response = await axios.get(`${backendUrl}/api/wishlist`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        setFavorites(response.data.wishlist || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch favorites:', error.message);
+    }
+  };
 
   const signup = async (name, email, password, address) => {
     try {
@@ -113,6 +123,7 @@ export const CartProvider = ({ children }) => {
       }
   
       await viewCart();
+      fetchFavorites();
   
       return { success: true, user: completeUser };
     } catch (error) {
@@ -251,23 +262,20 @@ export const CartProvider = ({ children }) => {
   // Favorites Management Functions
   const addToFavorites = async (product) => {
     if (isAuthenticated) {
-      // await axios.post(`${backendUrl}/api/favorites/add`, { productId: product.id }, {
-      //   headers: { Authorization: `Bearer ${accessToken}` },
-      // });
-      // Then fetch updated favorites from the backend.
-      
-      // If no backend, just store in state for now:
-      setFavorites((prev) => {
-        const alreadyFavorite = prev.find((item) => item.id === product.id);
-        if (alreadyFavorite) return prev; // Avoid duplicates
-        return [...prev, product];
-      });
+      try {
+        await axios.post(
+          `${backendUrl}/api/wishlist/add`,
+          { productId: product.id },
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        fetchFavorites(); // Refresh favorites
+      } catch (error) {
+        console.error('Failed to add to favorites:', error.message);
+      }
     } else {
-      // Not authenticated, store in localStorage
       setFavorites((prev) => {
         const updated = [...prev];
-        const alreadyFavorite = updated.find((item) => item.id === product.id);
-        if (!alreadyFavorite) {
+        if (!updated.find((item) => item.id === product.id)) {
           updated.push(product);
         }
         localStorage.setItem('favorites', JSON.stringify(updated));
@@ -278,13 +286,15 @@ export const CartProvider = ({ children }) => {
 
   const removeFromFavorites = async (productId) => {
     if (isAuthenticated) {
-      // await axios.delete(`${backendUrl}/api/favorites/remove`, {
-      //   data: { productId },
-      //   headers: { Authorization: `Bearer ${accessToken}` },
-      // });
-      // Fetch updated favorites if needed.
-      
-      setFavorites((prev) => prev.filter((item) => item.id !== productId));
+      try {
+        await axios.delete(`${backendUrl}/api/wishlist/remove`, {
+          data: { productId },
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        fetchFavorites(); // Refresh favorites
+      } catch (error) {
+        console.error('Failed to remove from favorites:', error.message);
+      }
     } else {
       setFavorites((prev) => {
         const updated = prev.filter((item) => item.id !== productId);
@@ -293,6 +303,7 @@ export const CartProvider = ({ children }) => {
       });
     }
   };
+
 
   return (
     <CartContext.Provider
