@@ -16,22 +16,58 @@ const Invoice = () => {
     const fetchInvoices = async (startDate, endDate) => {
         setLoading(true);
         try {
+            const token = localStorage.getItem("accessToken");
+            if (!token) {
+                console.error("No access token found. Please log in as a sales manager.");
+                setLoading(false);
+                return;
+            }
+
             const response = await axios.get(
-                `http://localhost:5001/api/invoices?start=${startDate}&end=${endDate}`
+                `http://localhost:5001/api/orders/invoices/date-range?startDate=${startDate}&endDate=${endDate}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
             setInvoices(response.data);
         } catch (error) {
             console.error("Failed to fetch invoices:", error.message);
+            setInvoices([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const handlePrintInvoice = (invoice) => {
-        const invoiceBlob = new Blob([JSON.stringify(invoice, null, 2)], {
-            type: "application/json",
-        });
-        saveAs(invoiceBlob, `invoice_${invoice.id}.pdf`);
+    const handleDownloadAllPDF = async () => {
+        if (!dateRange.start || !dateRange.end) {
+            alert("Please select a start and end date first.");
+            return;
+        }
+
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            console.error("No access token found. Please log in.");
+            return;
+        }
+
+        try {
+            const response = await axios.get(
+                `http://localhost:5001/api/orders/invoices/pdf/date-range?startDate=${dateRange.start}&endDate=${dateRange.end}`,
+                {
+                    responseType: "arraybuffer",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+            saveAs(pdfBlob, `invoices_${dateRange.start}_to_${dateRange.end}.pdf`);
+        } catch (error) {
+            console.error("Failed to download invoices PDF:", error.message);
+        }
     };
 
     return (
@@ -64,32 +100,47 @@ const Invoice = () => {
                 </div>
             </div>
 
+            {/* Button to Download All Invoices as PDF */}
+            <div className="mb-6">
+                <button
+                    onClick={handleDownloadAllPDF}
+                    className="px-4 py-2 bg-green-500 text-white rounded"
+                >
+                    Download All Invoices as PDF
+                </button>
+            </div>
+
             {/* Invoice List */}
             {loading ? (
                 <p>Loading invoices...</p>
+            ) : invoices.length === 0 ? (
+                <p>No invoices found for the selected date range.</p>
             ) : (
                 <table className="table-auto border-collapse border border-gray-300 w-full mb-6">
                     <thead className="bg-gray-100">
                         <tr>
-                            <th className="border border-gray-300 px-4 py-2">ID</th>
+                            <th className="border border-gray-300 px-4 py-2">Invoice ID</th>
                             <th className="border border-gray-300 px-4 py-2">Date</th>
                             <th className="border border-gray-300 px-4 py-2">Total</th>
-                            <th className="border border-gray-300 px-4 py-2">Actions</th>
+                            <th className="border border-gray-300 px-4 py-2">Status</th>
+                            <th className="border border-gray-300 px-4 py-2">User</th>
                         </tr>
                     </thead>
                     <tbody>
                         {invoices.map((invoice) => (
-                            <tr key={invoice.id} className="even:bg-gray-50">
-                                <td className="border border-gray-300 px-4 py-2">{invoice.id}</td>
-                                <td className="border border-gray-300 px-4 py-2">{invoice.date}</td>
-                                <td className="border border-gray-300 px-4 py-2">${invoice.total.toFixed(2)}</td>
+                            <tr key={invoice.invoiceId} className="even:bg-gray-50">
+                                <td className="border border-gray-300 px-4 py-2">{invoice.invoiceId}</td>
                                 <td className="border border-gray-300 px-4 py-2">
-                                    <button
-                                        onClick={() => handlePrintInvoice(invoice)}
-                                        className="px-4 py-1 bg-blue-500 text-white rounded"
-                                    >
-                                        Print/Save
-                                    </button>
+                                    {new Date(invoice.createdAt).toLocaleDateString()}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    ${invoice.totalAmount.toFixed(2)}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {invoice.status}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {invoice.userName} ({invoice.userEmail})
                                 </td>
                             </tr>
                         ))}
