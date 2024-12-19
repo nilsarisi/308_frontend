@@ -8,6 +8,7 @@ import Product from "./pages/Product";
 import Orders from "./pages/Orders";
 import Invoice from "./pages/Invoice";
 import { ProductManagerProvider } from "./contexts/ProductManager";
+import Deliverylist from "./pages/Deliverylist";
 
 const App = () => {
     return (
@@ -21,6 +22,7 @@ const App = () => {
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/invoice" element={<Invoice />} />
                     <Route path="/comment-moderation" element={<CommentModeration />} /> 
+                    <Route path="/delivery-list" element={<Deliverylist />} />
                 </Routes>
             </main>
             </div>

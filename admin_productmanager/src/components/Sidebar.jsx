@@ -4,6 +4,9 @@ import products_icon from "../assets/products_icon.png";
 import invoice_icon from "../assets/settings_icon.png"; 
 import orders_icon from "../assets/orders_icon.png";
 import comments_icon from "../assets/comments_icon.png";
+import delivery_icon from "../assets/delivery_icon.png";
+
+
 
 const Sidebar = () => {
     return (
@@ -25,6 +28,11 @@ const Sidebar = () => {
                     <img src={comments_icon} alt="Comments" style={styles.icon} />
                     <span>Pending Comments</span>
                 </NavLink>
+                <NavLink to="/delivery-list" style={styles.navLink} activeStyle={styles.activeNavLink}>
+                    <img src={delivery_icon} alt="Delivery List" style={styles.icon} />
+                    <span>Delivery List</span>
+                </NavLink>
+
             </nav>
         </div>
     );

@@ -60,6 +60,10 @@ const Navbar = () => {
                         <AiOutlineComment className="w-5 h-5" />
                         Comment Moderation
                     </Link>
+                    <Link to="/delivery-list" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
+                        <AiOutlineComment className="w-5 h-5" />
+                        Delivery List
+                    </Link>
                 </div>
             </div>
         </nav>
