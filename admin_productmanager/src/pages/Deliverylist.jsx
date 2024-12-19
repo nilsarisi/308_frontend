@@ -41,7 +41,6 @@ const DeliveryList = () => {
             <th style={tableHeaderStyle}>Total Price</th>
             <th style={tableHeaderStyle}>Delivery Address</th>
             <th style={tableHeaderStyle}>Completed</th>
-            <th style={tableHeaderStyle}>Refund</th> {/* Yeni Refund Sütunu */}
           </tr>
         </thead>
         <tbody>
@@ -73,11 +72,14 @@ const DeliveryList = () => {
                       {delivery.deliveryAddress}
                     </td>
                     <td style={tableCellStyle} rowSpan={delivery.products.length}>
-                      {delivery.isCompleted ? "Yes" : "No"}
+                      {delivery.status === "delivered"
+                        ? "Yes"
+                        : delivery.status === "in-transit"
+                        ? "No"
+                        : "Refund"}
                     </td>
                   </>
                 )}
-                <td style={tableCellStyle}>-</td> {/* Refund Kolonu için Statik Veri */}
               </tr>
             ))
           )}
