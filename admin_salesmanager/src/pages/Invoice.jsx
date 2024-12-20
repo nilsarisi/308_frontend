@@ -7,7 +7,7 @@ const Invoice = () => {
   const [selectedInvoices, setSelectedInvoices] = useState([]);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [loading, setLoading] = useState(false);
-  const [selectionEnabled, setSelectionEnabled] = useState(false); // Control whether checkboxes are enabled
+  const [selectionEnabled, setSelectionEnabled] = useState(false);
 
   useEffect(() => {
     if (dateRange.start && dateRange.end) {
@@ -48,7 +48,7 @@ const Invoice = () => {
   };
 
   const handleSelectAll = () => {
-    setSelectionEnabled(true); // Enable selection
+    setSelectionEnabled(true);
     setSelectedInvoices(invoices.map((invoice) => invoice.invoiceId));
   };
 
@@ -81,7 +81,7 @@ const Invoice = () => {
             `http://localhost:5001/api/orders/invoices/pdf/selected`,
             { invoiceIds: selectedInvoices },
             {
-                responseType: "arraybuffer", // Ensure Axios handles binary data
+                responseType: "arraybuffer",
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
