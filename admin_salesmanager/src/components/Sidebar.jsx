@@ -20,6 +20,10 @@ const Sidebar = () => {
                     <img src={orders_icon} alt="Orders" style={styles.icon} />
                     <span>Revenues</span>
                 </NavLink>
+                <NavLink to="/refund" style={styles.navLink} activeStyle={styles.activeNavLink}>
+                    <img src={refund_icon} alt="Refunds" style={styles.icon} />
+                    <span>Refunds</span>
+                </NavLink>
             </nav>
         </div>
     );

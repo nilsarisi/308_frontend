@@ -7,6 +7,7 @@ import Products from "./pages/Products";
 import Product from "./pages/Product";
 import Revenues from "./pages/Revenues";
 import Invoice from "./pages/Invoice";
+import Refund from "./pages/Refund";
 import { SalesManagerProvider } from "./contexts/SalesManager";
 
 
@@ -22,6 +23,7 @@ const App = () => {
                     <Route path="/product/:productID" element={<Product />} />
                     <Route path="/revenues" element={<Revenues />} />
                     <Route path="/invoice" element={<Invoice />} />
+                    <Route path="/refund" element={<Refund/>} />
                 </Routes>
             </main>
             </div>

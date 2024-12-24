@@ -57,6 +57,10 @@ const Navbar = () => {
                         <AiOutlineDashboard className="w-5 h-5" />
                         Invoice
                     </Link>
+                    <Link to="/refund" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
+                        <AiOutlineDashboard className="w-5 h-5" />
+                        Refund
+                    </Link>
                 </div>
             </div>
         </nav>

@@ -6,7 +6,6 @@ import { jwtDecode } from "jwt-decode";
 const SalesManagerContext = createContext();
 
 export const useSalesManager = () => useContext(SalesManagerContext);
-
 export const SalesManagerProvider = ({ children }) => {
     const backendUrl = 'http://localhost:5001'; 
     const [products, setProducts] = useState([]);
