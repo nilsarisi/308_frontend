@@ -18,6 +18,7 @@ const PlaceOrder = () => {
     country: "",
   });
   const [paymentInfo, setPaymentInfo] = useState({
+    nameOnCard: "",
     cardNumber: "",
     expiryDate: "",
     cvv: "",
@@ -85,6 +86,7 @@ const PlaceOrder = () => {
   
       // Step 2: Make the payment
       const paymentResponse = await axios.post(`${backendUrl}/api/payment/mock-payment`, {
+        nameOnCard: paymentInfo.nameOnCard,
         cardNumber: paymentInfo.cardNumber,
         expiry: paymentInfo.expiryDate,
         cvv: paymentInfo.cvv,
@@ -162,7 +164,7 @@ const PlaceOrder = () => {
         <div className="bg-white shadow-md p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Payment Information</h2>
           <form>
-            {["cardNumber", "expiryDate", "cvv"].map((field) => (
+            {["nameOnCard", "cardNumber", "expiryDate", "cvv"].map((field) => (
               <input
                 key={field}
                 type="text"
