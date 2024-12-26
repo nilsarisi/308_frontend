@@ -13,8 +13,13 @@ const CategoryManagement = () => {
   // Fetch data
   const fetchData = async () => {
     try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) throw new Error("Authentication token is missing.");
+
       // Fetch products
-      const productsResponse = await axios.get(`${backendUrl}/api/products`);
+      const productsResponse = await axios.get(`${backendUrl}/api/products`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       let fetchedProducts = productsResponse.data;
       fetchedProducts = fetchedProducts.filter(
         (product) => product.category !== "Uncategorized"
@@ -29,9 +34,11 @@ const CategoryManagement = () => {
       );
 
       // Fetch categories
-      const categoriesResponse = await axios.get(`${backendUrl}/api/products/categories`);
+      const categoriesResponse = await axios.get(`${backendUrl}/api/products/categories`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       let fetchedCategories = categoriesResponse.data;
-      
+
       if (!fetchedCategories.length) {
         fetchedCategories = ["Dummy Category"];
       }
@@ -39,7 +46,7 @@ const CategoryManagement = () => {
       fetchedCategories = fetchedCategories.filter(
         (cat) => cat !== "Uncategorized"
       );
-      
+
       setCategories(fetchedCategories);
     } catch (error) {
       console.error("Error fetching data:", error.response?.data || error.message);
@@ -55,9 +62,14 @@ const CategoryManagement = () => {
     if (!newCategoryName) return;
 
     try {
-      await axios.post(`${backendUrl}/api/products/add-category`, {
-        categoryName: newCategoryName,
-      });
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) throw new Error("Authentication token is missing.");
+
+      await axios.post(
+        `${backendUrl}/api/products/add-category`,
+        { categoryName: newCategoryName },
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
       alert(`Category "${newCategoryName}" added!`);
       setNewCategoryName("");
       fetchData();
@@ -74,8 +86,14 @@ const CategoryManagement = () => {
     }
 
     try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) throw new Error("Authentication token is missing.");
+
       await axios.delete(`${backendUrl}/api/products/delete-category`, {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
         data: { category: deleteCategoryName },
       });
       alert(`Category "${deleteCategoryName}" removed successfully.`);
@@ -92,7 +110,14 @@ const CategoryManagement = () => {
     if (newStock === undefined || newStock < 0) return;
 
     try {
-      await axios.put(`${backendUrl}/api/products/stock/${productId}`, { newStock });
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) throw new Error("Authentication token is missing.");
+
+      await axios.put(
+        `${backendUrl}/api/products/stock/${productId}`,
+        { newStock },
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
       alert(`Stock for product ID "${productId}" updated to ${newStock}!`);
       fetchData();
     } catch (error) {
