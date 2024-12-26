@@ -9,6 +9,7 @@ import Orders from "./pages/Orders";
 import Invoice from "./pages/Invoice";
 import { ProductManagerProvider } from "./contexts/ProductManager";
 import Deliverylist from "./pages/Deliverylist";
+import CategoryManagement from "./pages/CategoryManagement";
 
 const App = () => {
     return (
@@ -23,6 +24,7 @@ const App = () => {
                     <Route path="/invoice" element={<Invoice />} />
                     <Route path="/comment-moderation" element={<CommentModeration />} /> 
                     <Route path="/delivery-list" element={<Deliverylist />} />
+                    <Route path="/category-management" element={<CategoryManagement />} />
                 </Routes>
             </main>
             </div>

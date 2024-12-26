@@ -64,6 +64,10 @@ const Navbar = () => {
                         <AiOutlineComment className="w-5 h-5" />
                         Delivery List
                     </Link>
+                    <Link to="/category-management" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
+                        <AiOutlineComment className="w-5 h-5" />
+                        Category & Stock Management
+                    </Link>
                 </div>
             </div>
         </nav>

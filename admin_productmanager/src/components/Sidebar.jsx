@@ -32,6 +32,10 @@ const Sidebar = () => {
                     <img src={delivery_icon} alt="Delivery List" style={styles.icon} />
                     <span>Delivery List</span>
                 </NavLink>
+                <NavLink to="/category-management" style={styles.navLink} activeStyle={styles.activeNavLink}>
+                    <img src={products_icon} alt="Products" style={styles.icon} />
+                    <span>Category & Stock</span>
+                </NavLink>
 
             </nav>
         </div>
