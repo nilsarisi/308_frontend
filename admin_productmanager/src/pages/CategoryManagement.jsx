@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const backendUrl = "http://localhost:5001"; 
+const backendUrl = "http://localhost:5001";
 
 const CategoryManagement = () => {
   const [products, setProducts] = useState([]);
@@ -14,18 +14,22 @@ const CategoryManagement = () => {
   const fetchData = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) throw new Error("Authentication token is missing.");
 
       // Fetch products
       const productsResponse = await axios.get(`${backendUrl}/api/products`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
       });
-      let fetchedProducts = productsResponse.data;
-      fetchedProducts = fetchedProducts.filter(
+
+      // Filtreleme: Uncategorized ürünleri liste dışı bırakmak istiyorsan:
+      const fetchedProducts = productsResponse.data.filter(
         (product) => product.category !== "Uncategorized"
       );
       setProducts(fetchedProducts);
 
+      // Stock inputlarını yönetmek için state
       setAdjustedStocks(
         fetchedProducts.reduce((acc, product) => {
           acc[product._id] = product.stock;
@@ -34,19 +38,21 @@ const CategoryManagement = () => {
       );
 
       // Fetch categories
-      const categoriesResponse = await axios.get(`${backendUrl}/api/products/categories`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      let fetchedCategories = categoriesResponse.data;
-
-      if (!fetchedCategories.length) {
-        fetchedCategories = ["Dummy Category"];
-      }
-
-      fetchedCategories = fetchedCategories.filter(
-        (cat) => cat !== "Uncategorized"
+      const categoriesResponse = await axios.get(
+        `${backendUrl}/api/products/categories`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        }
       );
 
+      // "Uncategorized" kategorisini de liste dışı bırakacaksan:
+      const fetchedCategories = categoriesResponse.data.filter(
+        (cat) => cat !== "Uncategorized"
+      );
+      // Hiç kategori yoksa "Dummy Category" ekrana yazmasın diye istersem:
       setCategories(fetchedCategories);
     } catch (error) {
       console.error("Error fetching data:", error.response?.data || error.message);
@@ -57,27 +63,38 @@ const CategoryManagement = () => {
     fetchData();
   }, []);
 
+  // Kategori Ekle
   const handleAddCategory = async (e) => {
     e.preventDefault();
-    if (!newCategoryName) return;
+    if (!newCategoryName) {
+      alert("Please enter a category name.");
+      return;
+    }
 
     try {
       const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) throw new Error("Authentication token is missing.");
 
       await axios.post(
         `${backendUrl}/api/products/add-category`,
         { categoryName: newCategoryName },
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        }
       );
-      alert(`Category "${newCategoryName}" added!`);
+
+      alert(`Category "${newCategoryName}" added successfully!`);
       setNewCategoryName("");
       fetchData();
     } catch (error) {
       console.error("Error adding category:", error.response?.data || error.message);
+      alert("Failed to add category.");
     }
   };
 
+  // Kategori Sil
   const handleRemoveCategory = async (e) => {
     e.preventDefault();
     if (!deleteCategoryName) {
@@ -87,15 +104,14 @@ const CategoryManagement = () => {
 
     try {
       const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) throw new Error("Authentication token is missing.");
-
       await axios.delete(`${backendUrl}/api/products/delete-category`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         data: { category: deleteCategoryName },
       });
+
       alert(`Category "${deleteCategoryName}" removed successfully.`);
       setDeleteCategoryName("");
       fetchData();
@@ -105,23 +121,32 @@ const CategoryManagement = () => {
     }
   };
 
+  // Stok Güncelle
   const handleStockUpdate = async (productId) => {
     const newStock = adjustedStocks[productId];
-    if (newStock === undefined || newStock < 0) return;
+    if (newStock === undefined || newStock < 0) {
+      alert("Invalid stock value");
+      return;
+    }
 
     try {
       const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) throw new Error("Authentication token is missing.");
-
       await axios.put(
         `${backendUrl}/api/products/stock/${productId}`,
         { newStock },
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        }
       );
+
       alert(`Stock for product ID "${productId}" updated to ${newStock}!`);
       fetchData();
     } catch (error) {
       console.error("Error updating stock:", error.response?.data || error.message);
+      alert("Failed to update stock.");
     }
   };
 
@@ -129,7 +154,8 @@ const CategoryManagement = () => {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-6">Category & Stock Management</h1>
 
-      <div className="flex gap-2 mb-6">
+      {/* Kategori Ekle/Sil Kısmı */}
+      <div className="flex flex-wrap items-center gap-2 mb-6">
         <input
           type="text"
           placeholder="Category Name"
@@ -159,15 +185,21 @@ const CategoryManagement = () => {
         </button>
       </div>
 
+      {/* Kategorileri Listele */}
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">Categories</h2>
-        <ul className="list-disc pl-5">
-          {categories.map((category, index) => (
-            <li key={index}>{category}</li>
-          ))}
-        </ul>
+        {categories.length > 0 ? (
+          <ul className="list-disc pl-5">
+            {categories.map((category, index) => (
+              <li key={index}>{category}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>No categories found.</p>
+        )}
       </section>
 
+      {/* Ürünleri Listele ve Stok Güncelle */}
       <table className="table-auto w-full border-collapse border border-gray-200">
         <thead>
           <tr className="bg-gray-100">
