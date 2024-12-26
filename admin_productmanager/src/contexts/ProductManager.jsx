@@ -58,9 +58,21 @@ export const ProductManagerProvider = ({ children }) => {
             console.error("Failed to apply discount:", error.message);
         }
     };
+    const logout = async () => {
+        try {
+          await axios.post(`${backendUrl}/api/users/logout`, {}, { withCredentials: true });
+          setUser(null);
+          setAccessToken(null);
+          setIsAuthenticated(false);
+          localStorage.removeItem('user');
+          localStorage.removeItem('accessToken');
+        } catch (error) {
+          console.error('Logout failed:', error.message);
+        }
+    };
 
     return (
-        <ProductManagerContext.Provider value={{ products, loading, setPrice, applyDiscount }}>
+        <ProductManagerContext.Provider value={{ products, loading, setPrice, applyDiscount, logout }}>
             {children}
         </ProductManagerContext.Provider>
     );

@@ -99,6 +99,9 @@ export const CartProvider = ({ children }) => {
       if (user.role === 'sales_manager') {
         return { success: true, user };
       }
+      if (user.role === 'product_manager') {
+        return { success: true, user };
+      }
   
       // Otherwise, proceed as normal
       const decodedToken = jwtDecode(accessToken);

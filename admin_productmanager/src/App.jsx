@@ -9,6 +9,7 @@ import Orders from "./pages/Orders";
 import Invoice from "./pages/Invoice";
 import { ProductManagerProvider } from "./contexts/ProductManager";
 import Deliverylist from "./pages/Deliverylist";
+import TokenHandler from './pages/TokenHandler';
 
 const App = () => {
     return (
@@ -16,6 +17,7 @@ const App = () => {
             <div className="bg-gray-50 min-h-screen">
                 <Navbar />
             <main className="flex-grow">
+                <TokenHandler />
                 <Routes>
                     <Route path="/products" element={<Products />} />
                     <Route path="/product/:productID" element={<Product />} />
