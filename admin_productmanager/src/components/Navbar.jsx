@@ -10,8 +10,7 @@ const Navbar = () => {
     const handleMenuToggle = () => setMenuVisible(!menuVisible);
 
     const handleLogout = () => {
-        console.log("Logged out");
-        navigate("/login");
+        window.location.href = 'http://localhost:5173/login';
     };
 
     return (
