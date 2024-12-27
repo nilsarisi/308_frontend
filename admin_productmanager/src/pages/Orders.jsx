@@ -12,7 +12,15 @@ const DeliveryTracking = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(`${backendUrl}/api/orders/admin/all`);
+
+        const accessToken = localStorage.getItem("accessToken");  
+        
+        const response = await axios.get(`${backendUrl}/api/orders/admin/all`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        });
         if (Array.isArray(response.data)) {
           const sortedOrders = response.data.sort((a, b) => {
             const statusOrder = { processing: 1, "in-transit": 2, delivered: 3 };
@@ -77,6 +85,8 @@ const DeliveryTracking = () => {
             <th style={tableHeaderStyle}>Estimated Delivery</th>
             <th style={tableHeaderStyle}>Total Amount</th>
             <th style={tableHeaderStyle}>Products</th>
+            <th style={tableHeaderStyle}>Address</th>
+
             <th style={tableHeaderStyle}>Update Status</th>
           </tr>
         </thead>
@@ -94,6 +104,15 @@ const DeliveryTracking = () => {
                   </div>
                 ))}
               </td>
+              
+              <td style={tableCellStyle}>
+                {order.address
+                  ? `${order.address.name}, ${order.address.address}, 
+                     ${order.address.city}, ${order.address.postalCode}, 
+                     ${order.address.country}`
+                  : "No Address"}
+              </td>
+
               <td style={tableCellStyle}>
                 <StatusUpdateDropdown
                   orderId={order.orderId}
@@ -106,7 +125,6 @@ const DeliveryTracking = () => {
       </table>
     </div>
   );
-  
 };
 
 const StatusUpdateDropdown = ({ orderId, currentStatus }) => {
@@ -118,8 +136,20 @@ const StatusUpdateDropdown = ({ orderId, currentStatus }) => {
     const newStatus = e.target.value;
     setLoading(true);
 
+    
+    const accessToken = localStorage.getItem("accessToken"); 
+
     axios
-      .put(`${backendUrl}/api/orders/${orderId}/status`, { status: newStatus })
+      .put(
+        `${backendUrl}/api/orders/${orderId}/status`,
+        { status: newStatus },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        }
+      )
       .then((response) => {
         setStatus(response.data.order.orderStatus);
         setError("");
@@ -153,7 +183,6 @@ const StatusUpdateDropdown = ({ orderId, currentStatus }) => {
     </div>
   );
 };
-
 
 const tableHeaderStyle = {
   border: "1px solid #ddd",
