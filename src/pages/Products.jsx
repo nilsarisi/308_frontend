@@ -220,7 +220,18 @@ const Products = () => {
               <div key={product._id} className="border p-4">
                 <img src={product.imageURL} alt={product.name} className="w-full" />
                 <p className="font-bold">{product.name}</p>
-                <p className="text-green-700">₺{product.price}</p>
+                {product.discountPercentage ? (
+              <div className="mt-2">
+                <p className="text-sm line-through text-gray-500">
+                  ₺{product.originalPrice.toFixed(2)}
+                </p>
+                <p className="text-lg text-green-600 font-bold">
+                  ₺{product.price.toFixed(2)} ({product.discountPercentage}% OFF)
+                </p>
+              </div>
+            ) : (
+              <p className="text-lg text-gray-700 mt-2">₺{product.price.toFixed(2)}</p>
+            )}
                 <p className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
                   {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                 </p>

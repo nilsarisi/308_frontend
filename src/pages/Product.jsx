@@ -198,7 +198,9 @@ const Product = () => {
         )
         .slice(0, 4)
     : [];
-
+    const discountedPrice = product.originalPrice
+    ? product.originalPrice - (product.originalPrice * product.discountPercentage) / 100
+    : product.price;
   return (
     <div className="container mx-auto p-4">
       <div className="flex">
@@ -207,7 +209,16 @@ const Product = () => {
         </div>
         <div className="w-1/2 pl-4">
           <h1 className="text-3xl font-bold">{product.name}</h1>
-          <p className="text-xl text-green-700">₺{product.price}</p>
+          {product.discountPercentage > 0 ? (
+            <div>
+              <p className="text-lg line-through text-gray-500">₺{product.originalPrice.toFixed(2)}</p>
+              <p className="text-2xl text-green-600 font-bold">
+                ₺{discountedPrice.toFixed(2)} ({product.discountPercentage}% OFF)
+              </p>
+            </div>
+          ) : (
+          <p className="text-xl text-green-700">₺{product.price.toFixed(2)}</p>
+        )}
           <p className="mt-2">{product.description}</p>
           <div className="mt-4">
             <p className="mt-2 text-sm">

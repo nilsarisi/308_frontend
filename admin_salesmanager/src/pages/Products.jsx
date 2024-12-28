@@ -48,11 +48,43 @@ const Products = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {products.map((product) => (
+                    {products.map((product) => {
+                            const originalPrice = product.originalPrice || product.price || 0;
+                            const currentPrice = product.price || 0;
+                            const discountPercentage = product.discountPercentage || 0;
+                            return (
                             <tr key={product._id} className="even:bg-gray-50">
                                 <td className="border border-gray-300 px-6 py-4 break-words">{product._id}</td>
                                 <td className="border border-gray-300 px-6 py-4">{product.name}</td>
-                                <td className="border border-gray-300 px-6 py-4">${product.price.toFixed(2)}</td>
+                                <td className="border border-gray-300 px-6 py-4">
+                                    <div>
+                                        {product.discountPercentage > 0 ? (
+                                            <>
+                                                <p>
+                                                    <span className="text-sm text-gray-500 line-through">
+                                                        Original: ₺{product.originalPrice?.toFixed(2)}
+                                                    </span>
+                                                </p>
+                                                <p>
+                                                    <span className="text-sm font-bold">
+                                                        Discount: {product.discountPercentage}%
+                                                    </span>
+                                                </p>
+                                                <p>
+                                                    <span className="text-lg text-green-600 font-bold">
+                                                        Current: ₺{product.price.toFixed(2)}
+                                                    </span>
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <p>
+                                                <span className="text-lg text-green-600 font-bold">
+                                                    Price: ₺{product.price.toFixed(2)}
+                                                </span>
+                                            </p>
+                                        )}
+                                    </div>
+                                </td>
                                 <td className="border border-gray-300 px-6 py-4 text-center">{product.stock}</td>
                                 <td className="border border-gray-300 px-6 py-4">
                                     <div className="flex flex-col space-y-4">
@@ -89,7 +121,8 @@ const Products = () => {
                                     </div>
                                 </td>
                             </tr>
-                        ))}
+                          );
+                        })}
                     </tbody>
                 </table>
             </div>

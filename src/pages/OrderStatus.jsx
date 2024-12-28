@@ -34,7 +34,9 @@ const OrderStatus = () => {
       setError("Unable to fetch order details. Please try again later.");
     }
   };
-
+  const isOrderFullyRefunded = (order) => {
+    return order.products.every((product) => product.refundStatus === "approved");
+  };
   const requestRefund = async (orderId, productId) => {
     try {
       const accessToken = localStorage.getItem("accessToken");
@@ -92,7 +94,8 @@ const OrderStatus = () => {
           <div key={order.orderId} className="mt-6 p-6 bg-white shadow-md rounded-lg">
             <h2 className="text-2xl font-bold">Order #{order.orderId}</h2>
             <p className="mt-2">
-              <strong>Status:</strong> {order.status}
+              <strong>Status:</strong>{" "}
+              {isOrderFullyRefunded(order) ? "Refunded" : order.status === "delivered" ? "Delivered" : order.status}
             </p>
             <p className="mt-2">
               <strong>Created At:</strong> {new Date(order.createdAt).toLocaleString()}
@@ -104,8 +107,9 @@ const OrderStatus = () => {
             {order.products.map((item, index) => (
               <div key={index} className="mt-2">
                 <p>
-                  {item.name} x {item.quantity} - ₺{(item.price * item.quantity).toFixed(2)}
+                  {item.name} x {item.quantity} - ₺{(item.priceAtPurchase * item.quantity).toFixed(2)}
                 </p>
+                
                 {order.status !== "delivered" || order.status === "canceled" ? null : item.refundStatus ? (
                   <p className="text-blue-500 mt-1">
                     Refund Status:{" "}
