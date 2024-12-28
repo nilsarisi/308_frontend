@@ -71,8 +71,43 @@ export const ProductManagerProvider = ({ children }) => {
         }
     };
 
+    const deleteProduct = async (productId) => {
+        try {
+          const token = localStorage.getItem('accessToken'); 
+          await axios.delete(`${backendUrl}/api/products/${productId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+    
+          setProducts((prevProducts) =>
+            prevProducts.filter((product) => product._id !== productId)
+          );
+        } catch (error) {
+          console.error("Failed to delete product:", error.message);
+        }
+    };
+
+    const createProduct = async (productData) => {
+        try {
+          const token = localStorage.getItem('accessToken');
+          const response = await axios.post(
+            `${backendUrl}/api/products`,
+            productData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setProducts((prevProducts) => [...prevProducts, response.data]);
+        } catch (error) {
+          console.error("Failed to create product:", error.message);
+        }
+      };
+
     return (
-        <ProductManagerContext.Provider value={{ products, loading, setPrice, applyDiscount, logout }}>
+        <ProductManagerContext.Provider value={{ products, loading, setPrice, applyDiscount, logout, deleteProduct, createProduct }}>
             {children}
         </ProductManagerContext.Provider>
     );

@@ -5,7 +5,7 @@ import invoice_icon from "../assets/settings_icon.png";
 import orders_icon from "../assets/orders_icon.png";
 import comments_icon from "../assets/comments_icon.png";
 import delivery_icon from "../assets/delivery_icon.png";
-
+import stock_icon from "../assets/stock.png";
 
 
 const Sidebar = () => {
@@ -33,7 +33,7 @@ const Sidebar = () => {
                     <span>Delivery List</span>
                 </NavLink>
                 <NavLink to="/category-management" style={styles.navLink} activeStyle={styles.activeNavLink}>
-                    <img src={products_icon} alt="Products" style={styles.icon} />
+                    <img src={stock_icon} alt="Category & Stock" style={styles.icon} />
                     <span>Category & Stock</span>
                 </NavLink>
 

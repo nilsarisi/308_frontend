@@ -23,13 +23,11 @@ const CategoryManagement = () => {
         },
       });
 
-      // Filtreleme: Uncategorized ürünleri liste dışı bırakmak istiyorsan:
       const fetchedProducts = productsResponse.data.filter(
         (product) => product.category !== "Uncategorized"
       );
       setProducts(fetchedProducts);
 
-      // Stock inputlarını yönetmek için state
       setAdjustedStocks(
         fetchedProducts.reduce((acc, product) => {
           acc[product._id] = product.stock;
@@ -48,11 +46,10 @@ const CategoryManagement = () => {
         }
       );
 
-      // "Uncategorized" kategorisini de liste dışı bırakacaksan:
       const fetchedCategories = categoriesResponse.data.filter(
         (cat) => cat !== "Uncategorized"
       );
-      // Hiç kategori yoksa "Dummy Category" ekrana yazmasın diye istersem:
+
       setCategories(fetchedCategories);
     } catch (error) {
       console.error("Error fetching data:", error.response?.data || error.message);
@@ -63,7 +60,7 @@ const CategoryManagement = () => {
     fetchData();
   }, []);
 
-  // Kategori Ekle
+  // Add category
   const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!newCategoryName) {
@@ -94,7 +91,7 @@ const CategoryManagement = () => {
     }
   };
 
-  // Kategori Sil
+  // Delete category
   const handleRemoveCategory = async (e) => {
     e.preventDefault();
     if (!deleteCategoryName) {
@@ -121,7 +118,7 @@ const CategoryManagement = () => {
     }
   };
 
-  // Stok Güncelle
+  // Update stock
   const handleStockUpdate = async (productId) => {
     const newStock = adjustedStocks[productId];
     if (newStock === undefined || newStock < 0) {
@@ -154,7 +151,6 @@ const CategoryManagement = () => {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-6">Category & Stock Management</h1>
 
-      {/* Kategori Ekle/Sil Kısmı */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
         <input
           type="text"
@@ -185,7 +181,6 @@ const CategoryManagement = () => {
         </button>
       </div>
 
-      {/* Kategorileri Listele */}
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">Categories</h2>
         {categories.length > 0 ? (
@@ -199,7 +194,6 @@ const CategoryManagement = () => {
         )}
       </section>
 
-      {/* Ürünleri Listele ve Stok Güncelle */}
       <table className="table-auto w-full border-collapse border border-gray-200">
         <thead>
           <tr className="bg-gray-100">
