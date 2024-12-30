@@ -19,6 +19,7 @@ import OrderSuccess from './pages/OrderSuccess';
 import OrderStatus from './pages/OrderStatus';
 import Account from './pages/Account';
 import Favorites from './pages/Favorites';
+import Discounts from './pages/Discounts';
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
             <Route path="/category/:category" element={<Products />} />
             <Route path="/product/:productID" element={<Product />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/discounts" element={<Discounts />} />
           </Routes>
         </main>
         <Footer />

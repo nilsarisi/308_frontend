@@ -34,9 +34,11 @@ const OrderStatus = () => {
       setError("Unable to fetch order details. Please try again later.");
     }
   };
+
   const isOrderFullyRefunded = (order) => {
     return order.products.every((product) => product.refundStatus === "approved");
   };
+
   const requestRefund = async (orderId, productId) => {
     try {
       const accessToken = localStorage.getItem("accessToken");
@@ -101,7 +103,10 @@ const OrderStatus = () => {
               <strong>Created At:</strong> {new Date(order.createdAt).toLocaleString()}
             </p>
             <p className="mt-2">
-              <strong>Estimated Delivery:</strong> {order.estimatedDelivery || "N/A"}
+              <strong>Estimated Delivery:</strong>{" "}
+              {order.status === "canceled"
+                ? "Cancelled"
+                : order.estimatedDelivery || "N/A"}
             </p>
             <h3 className="text-xl font-bold mt-6">Order Summary</h3>
             {order.products.map((item, index) => (
@@ -109,7 +114,6 @@ const OrderStatus = () => {
                 <p>
                   {item.name} x {item.quantity} - ₺{(item.priceAtPurchase * item.quantity).toFixed(2)}
                 </p>
-                
                 {order.status !== "delivered" || order.status === "canceled" ? null : item.refundStatus ? (
                   <p className="text-blue-500 mt-1">
                     Refund Status:{" "}
@@ -119,8 +123,17 @@ const OrderStatus = () => {
                   </p>
                 ) : (
                   <button
-                    className="mt-2 bg-red-500 text-white py-1 px-2 rounded"
-                    onClick={() => setRefundRequest({ orderId: order.orderId, productId: item.productId })}
+                    className={`mt-2 py-1 px-2 rounded ${
+                      item.isReturnable
+                        ? "bg-red-500 text-white"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
+                    onClick={() =>
+                      item.isReturnable
+                        ? setRefundRequest({ orderId: order.orderId, productId: item.productId })
+                        : alert("The refund period for this product has expired.")
+                    }
+                    disabled={!item.isReturnable}
                   >
                     Request Refund
                   </button>
