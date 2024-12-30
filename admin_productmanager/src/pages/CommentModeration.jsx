@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const backendUrl = "http://localhost:5001"; // Replace with your backend URL
+const backendUrl = "http://localhost:5001"; 
 
 const CommentModeration = () => {
   const [comments, setComments] = useState([]);
@@ -10,8 +10,14 @@ const CommentModeration = () => {
 
   useEffect(() => {
     const fetchPendingComments = async () => {
+      const token = localStorage.getItem('accessToken');  
+
       try {
-        const response = await axios.get(`${backendUrl}/api/products/comments/pending`);
+        const response = await axios.get(`${backendUrl}/api/products/comments/pending`, {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        });
         setComments(response.data);
       } catch (err) {
         setError("Failed to fetch comments");
@@ -24,8 +30,16 @@ const CommentModeration = () => {
   }, []);
 
   const handleApprove = async (productId, commentId) => {
+    const token = localStorage.getItem('accessToken');  
     try {
-      await axios.put(`${backendUrl}/api/products/comments/${productId}/${commentId}/approve`);
+      await axios.put(`${backendUrl}/api/products/comments/${productId}/${commentId}/approve`, 
+        {}, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        }
+      );
       setComments(comments.filter(comment => comment.commentId !== commentId));
     } catch (err) {
       setError("Failed to approve comment");
@@ -33,8 +47,13 @@ const CommentModeration = () => {
   };
 
   const handleReject = async (productId, commentId) => {
+    const token = localStorage.getItem('accessToken'); 
     try {
-      await axios.delete(`${backendUrl}/api/products/comments/${productId}/${commentId}/reject`);
+      await axios.delete(`${backendUrl}/api/products/comments/${productId}/${commentId}/reject`, {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+      });
       setComments(comments.filter(comment => comment.commentId !== commentId));
     } catch (err) {
       setError("Failed to reject comment");
