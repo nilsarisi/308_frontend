@@ -3,7 +3,7 @@ import { useCart } from '../contexts/CartContext';
 import { Link } from 'react-router-dom';
 
 const Favorites = () => {
-  const { favorites, removeFromFavorites, isAuthenticated } = useCart();
+  const { favorites, removeFromFavorites, addProductToCart, isAuthenticated } = useCart();
 
   if (!isAuthenticated) {
     return (
@@ -34,6 +34,24 @@ const Favorites = () => {
     removeFromFavorites(productId);
   };
 
+  const handleAddToCart = (product) => {
+    if (product.stock <= 0) {
+      alert('Sorry, this product is out of stock.');
+      return;
+    }
+  
+    const productToAdd = {
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      quantity: 1, // Default to 1 for favorites
+      stock: product.stock,
+      image: product.imageURL,
+    };
+  
+    addProductToCart(productToAdd);
+    alert(`${product.name} added to cart!`);
+  };
   return (
     <div className="min-h-screen p-4 bg-gray-50">
       <h1 className="text-3xl font-bold text-center mb-6">Your Favorites</h1>
@@ -44,10 +62,17 @@ const Favorites = () => {
             <h2 className="text-xl font-semibold mb-2">{item.name}</h2>
             <p className="text-gray-700 mb-4">${item.price}</p>
             <button
-              className="mt-auto bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
+              className="mt-auto bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 mb-2"
               onClick={() => handleRemoveFavorite(item._id)}
             >
               Remove from Favorites
+            </button>
+            <button
+              onClick={() => handleAddToCart(item)}
+              className={`mt-auto ${item.stock === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-yellow-500'} text-white py-2 px-4 rounded`}
+              disabled={item.stock === 0}
+            >
+              {item.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
             </button>
           </div>
         ))}

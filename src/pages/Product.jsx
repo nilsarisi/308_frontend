@@ -34,7 +34,7 @@ const Product = () => {
   const [quantity, setQuantity] = useState(1);
   const { addProductToCart, addToFavorites, user, isAuthenticated } = useCart();
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,18 +42,10 @@ const Product = () => {
         const productResponse = await axios.get(`http://localhost:5001/api/products/${productID}`);
         setProduct(productResponse.data);
 
-        // Increase product popularity
-        await axios.put(`http://localhost:5001/api/products/${productID}/increase-popularity`);
-
         // Set comments and ratings
         setComments(productResponse.data.comments.filter(comment => comment.isVisible));
         setRatings(productResponse.data.ratings);
 
-        // Fetch all products to find similar ones
-        const allProductsResponse = await axios.get(`http://localhost:5001/api/products`);
-        const allProducts = allProductsResponse.data;
-
-        setProducts(allProducts);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching product or feedback:', err.message);
@@ -72,6 +64,22 @@ const Product = () => {
     }
 
     try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) throw new Error("Authentication token is missing.");
+
+      const ordersResponse = await axios.get(`http://localhost:5001/api/orders/all`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      const deliveredProducts = ordersResponse.data
+        .filter(order => order.status === "delivered")
+        .flatMap(order => order.products.map(product => product.productId));
+
+      if (!deliveredProducts.includes(productID)) {
+        alert('You should have purchased the product to leave a review.');
+        return;
+      }
+
       const response = await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
         userId: user.id,
         username: user.name,
@@ -81,7 +89,6 @@ const Product = () => {
 
       if (newComment) {
         alert('Your comment will be reviewed before publishing! Thank you for your feedback.');
-        // After submitting, re-fetch or just update state directly
         setComments([...comments, response.data.product.comments.pop()]);
       }
 
@@ -111,6 +118,22 @@ const Product = () => {
     }
 
     try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) throw new Error("Authentication token is missing.");
+
+      const ordersResponse = await axios.get(`http://localhost:5001/api/orders/all`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      const deliveredProducts = ordersResponse.data
+        .filter(order => order.status === "delivered")
+        .flatMap(order => order.products.map(product => product.productId));
+
+      if (!deliveredProducts.includes(productID)) {
+        alert('You should have purchased the product to leave a review.');
+        return;
+      }
+
       const response = await axios.post(`http://localhost:5001/api/products/${productID}/feedback`, {
         userId: user.id,
         username: user.name,
@@ -198,7 +221,7 @@ const Product = () => {
         )
         .slice(0, 4)
     : [];
-    const discountedPrice = product.originalPrice
+  const discountedPrice = product.originalPrice
     ? product.originalPrice - (product.originalPrice * product.discountPercentage) / 100
     : product.price;
   return (
