@@ -38,7 +38,7 @@ const DeliveryList = () => {
       {error && <p className="text-red-600 text-center">{error}</p>}
       <table
         className="
-          table-fixed   /* Sabit tablo yerleşimi */
+          table-fixed   
           w-full 
           border-collapse 
           border border-gray-200
@@ -56,11 +56,16 @@ const DeliveryList = () => {
             <th className="w-24 border border-gray-200 px-2 py-2 break-words">Total Price</th>
             <th className="w-48 border border-gray-200 px-2 py-2 break-words">Delivery Address</th>
             <th className="w-24 border border-gray-200 px-2 py-2 break-words">Completed</th>
+            <th className="w-24 border border-gray-200 px-2 py-2 break-words">Refund Status</th>  
           </tr>
         </thead>
         <tbody>
-          {deliveries.map((delivery) =>
-            delivery.products.map((product, index) => (
+          {deliveries.map((delivery) => {
+            const allRefunded = delivery.products.every(
+              (product) => product.refundStatus === "approved"
+            );
+
+            return delivery.products.map((product, index) => (
               <tr key={`${delivery.deliveryId}-${index}`}>
                 {index === 0 && (
                   <>
@@ -111,17 +116,22 @@ const DeliveryList = () => {
                       className="border border-gray-200 px-2 py-2 break-words align-top"
                       rowSpan={delivery.products.length}
                     >
-                      {delivery.status === "delivered"
+                      {allRefunded
+                        ? "Refund"
+                        : delivery.status === "delivered"
                         ? "Yes"
                         : delivery.status === "in-transit"
                         ? "No"
-                        : "Refund"}
+                        : "Pending"}
                     </td>
                   </>
                 )}
+                <td className="border border-gray-200 px-2 py-2 break-words align-top">
+                  {product.refundStatus}  
+                </td>
               </tr>
-            ))
-          )}
+            ));
+          })}
         </tbody>
       </table>
     </div>
