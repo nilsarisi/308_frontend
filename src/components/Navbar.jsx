@@ -24,6 +24,8 @@ const Navbar = () => {
   const searchContainerRef = useRef(null);
   const accountMenuRef = useRef(null);
 
+  const [categories, setCategories] = useState([]);
+
   // Fetch all products
   useEffect(() => {
     const fetchProducts = async () => {
@@ -36,6 +38,23 @@ const Navbar = () => {
     };
 
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+        const response = await axios.get("http://localhost:5001/api/products/categories", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
   }, []);
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
@@ -281,27 +300,21 @@ const Navbar = () => {
           <Link to="/discounts" className="hover:text-blue-300" onClick={handleMenuToggle}>
             Discounts
           </Link>
-          <Link
-            to="/products?category=food"
-            className="hover:text-blue-300"
-            onClick={handleMenuToggle}
-          >
-            Food
-          </Link>
-          <Link
-            to="/products?category=cosmetics"
-            className="hover:text-blue-300"
-            onClick={handleMenuToggle}
-          >
-            Cosmetics
-          </Link>
-          <Link
-            to="/products?category=cleaning"
-            className="hover:text-blue-300"
-            onClick={handleMenuToggle}
-          >
-            Cleaning
-          </Link>
+          
+          {categories.map((cat) => {
+            const displayName = cat.charAt(0).toUpperCase() + cat.slice(1);
+            return (
+              <Link
+                key={cat}
+                to={`/products?category=${cat}`}
+                className="hover:text-blue-300"
+                onClick={handleMenuToggle}
+              >
+                {displayName}
+              </Link>
+            );
+          })}
+
           <Link to="/about" className="hover:text-blue-300" onClick={handleMenuToggle}>
             About
           </Link>

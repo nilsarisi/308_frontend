@@ -11,6 +11,8 @@ const Products = () => {
   const [availability, setAvailability] = useState('all');
   const [searchParams] = useSearchParams(); // For reading query params
 
+  const [categories, setCategories] = useState([]);
+
   // Fetch products from the backend
   useEffect(() => {
     axios
@@ -21,6 +23,26 @@ const Products = () => {
       })
       .catch((error) => console.error('Error fetching products:', error));
   }, []);
+
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        // Eğer public hale getirdiyseniz token şart değil, şu 2 satırı silebilirsiniz.
+        const accessToken = localStorage.getItem("accessToken");
+        const response = await axios.get("http://localhost:5001/api/products/categories", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
 
   // Update active category from URL
   useEffect(() => {
@@ -83,30 +105,22 @@ const Products = () => {
         >
           All Products
         </button>
-        <button
-          onClick={() => setActiveCategory('food')}
-          className={`block w-full text-left py-2 ${
-            activeCategory === 'food' ? 'font-bold' : ''
-          }`}
-        >
-          Food
-        </button>
-        <button
-          onClick={() => setActiveCategory('cosmetics')}
-          className={`block w-full text-left py-2 ${
-            activeCategory === 'cosmetics' ? 'font-bold' : ''
-          }`}
-        >
-          Cosmetics
-        </button>
-        <button
-          onClick={() => setActiveCategory('cleaning')}
-          className={`block w-full text-left py-2 ${
-            activeCategory === 'cleaning' ? 'font-bold' : ''
-          }`}
-        >
-          Cleaning
-        </button>
+
+        {categories.map((cat) => {
+          const displayName = cat.charAt(0).toUpperCase() + cat.slice(1);
+
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`block w-full text-left py-2 ${
+                activeCategory === cat ? 'font-bold' : ''
+              }`}
+            >
+              {displayName}
+            </button>
+          );
+        })}
 
         <h2 className="text-xl font-bold mt-8 mb-4">Sort By</h2>
         <button

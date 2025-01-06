@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Products from "./pages/Products";
@@ -12,6 +12,8 @@ import Deliverylist from "./pages/Deliverylist";
 import CategoryManagement from "./pages/CategoryManagement";
 import TokenHandler from './pages/TokenHandler';
 
+
+
 const App = () => {
     return (
         <ProductManagerProvider>
@@ -20,6 +22,7 @@ const App = () => {
             <main className="flex-grow">
                 <TokenHandler />
                 <Routes>
+                    <Route path="/" element={<Navigate to="/products" />} />
                     <Route path="/products" element={<Products />} />
                     <Route path="/product/:productID" element={<Product />} />
                     <Route path="/orders" element={<Orders />} />
