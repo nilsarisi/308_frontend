@@ -27,9 +27,8 @@ const Products = () => {
   // form submit handler
   const handleCreateProduct = async (e) => {
     e.preventDefault();
-  
-    const parsedPrice = parseFloat(newProductData.price) || 0; 
-    const parsedStock = parseInt(newProductData.stock, 10) || 0; 
+    const parsedPrice = parseFloat(newProductData.price) || 0.0;
+    const parsedStock = parseInt(newProductData.stock, 10) || 0;
   
     const productDataToSend = {
       ...newProductData,
@@ -37,18 +36,22 @@ const Products = () => {
       stock: parsedStock,
     };
   
-    await createProduct(productDataToSend);
-  
-    setNewProductData({
-      name: "",
-      description: "",
-      price: "",
-      category: "",
-      brand: "",
-      stock: "",
-      imageURL: "",
-    });
+    try {
+      await createProduct(productDataToSend);
+      setNewProductData({
+        name: "",
+        description: "",
+        price: "",
+        category: "",
+        brand: "",
+        stock: "",
+        imageURL: "",
+      });
+    } catch (error) {
+      console.error("Create product failed:", error);
+    }
   };
+  
   
 
   // deleting product
@@ -134,6 +137,7 @@ const Products = () => {
           <label className="block font-semibold">Stock:</label>
           <input
             type="number"
+            step="1" 
             value={newProductData.stock}
             onChange={(e) =>
                 setNewProductData({
@@ -219,4 +223,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default Products; 
