@@ -30,7 +30,7 @@ const PlaceOrder = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       alert("You must log in to place an order.");
-      navigate("/login");
+      navigate("/login", { state: { from: "/cart" } });
       return;
     }
 
@@ -40,7 +40,7 @@ const PlaceOrder = () => {
       setUserEmail(storedUser.email);
     } else {
       alert("Failed to retrieve user email.");
-      navigate("/login");
+      navigate("/login", { state: { from: "/cart" } });
     }
   }, [isAuthenticated, navigate]);
 

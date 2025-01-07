@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 
 const Login = () => {
+  const location = useLocation();
   const { login } = useCart();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -41,7 +42,12 @@ const Login = () => {
         } else if (userRole === 'product_manager') {
           window.location.href = `http://localhost:5175?token=${encodeURIComponent(accessToken)}`;
         } else {
-          navigate('/cart');
+          if (location.state?.from === '/cart') {
+            navigate('/cart');
+          } 
+          else {
+            navigate('/');
+          }
         }
       } else {
         setError(response.error || 'Error during login');
