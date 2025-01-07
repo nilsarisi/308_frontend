@@ -52,11 +52,17 @@ const Products = () => {
     }
   };
   
-  
 
   // deleting product
   const handleDeleteProduct = async (productId) => {
-    await deleteProduct(productId);
+    const userConfirmed = window.confirm("Bu ürünü silmek istediğinize emin misiniz?");
+    if (userConfirmed) {
+      try {
+        await deleteProduct(productId);
+      } catch (error) {
+        console.error("Failed to delete product:", error);
+      }
+    }
   };
 
   return (
@@ -137,7 +143,7 @@ const Products = () => {
           <label className="block font-semibold">Stock:</label>
           <input
             type="number"
-            step="1" 
+            step="1"
             value={newProductData.stock}
             onChange={(e) =>
                 setNewProductData({
@@ -223,4 +229,4 @@ const Products = () => {
   );
 };
 
-export default Products; 
+export default Products;
