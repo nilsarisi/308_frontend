@@ -1,13 +1,14 @@
-// Products.jsx - Page to Display Products
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useProductManager } from "../contexts/ProductManager";
 
 const Products = () => {
   const {
     products,
     loading,
-    createProduct,   
+    createProduct,
     deleteProduct,
+    fetchProducts,
   } = useProductManager();
 
   const [newProductData, setNewProductData] = useState({
@@ -20,22 +21,28 @@ const Products = () => {
     imageURL: "",
   });
 
-  if (loading) {
-    return <div>Loading products...</div>;
-  }
+  const [adjustedStocks, setAdjustedStocks] = useState({});
 
-  // form submit handler
+  useEffect(() => {
+    setAdjustedStocks(
+      products.reduce((acc, product) => {
+        acc[product._id] = product.stock;
+        return acc;
+      }, {})
+    );
+  }, [products]);
+
   const handleCreateProduct = async (e) => {
     e.preventDefault();
     const parsedPrice = parseFloat(newProductData.price) || 0.0;
     const parsedStock = parseInt(newProductData.stock, 10) || 0;
-  
+
     const productDataToSend = {
       ...newProductData,
       price: parsedPrice,
       stock: parsedStock,
     };
-  
+
     try {
       await createProduct(productDataToSend);
       setNewProductData({
@@ -51,9 +58,7 @@ const Products = () => {
       console.error("Create product failed:", error);
     }
   };
-  
 
-  // deleting product
   const handleDeleteProduct = async (productId) => {
     const userConfirmed = window.confirm("Bu ürünü silmek istediğinize emin misiniz?");
     if (userConfirmed) {
@@ -65,136 +70,137 @@ const Products = () => {
     }
   };
 
+  const handleStockUpdate = async (productId) => {
+    const newStock = adjustedStocks[productId];
+    if (newStock === undefined || newStock < 0) {
+      alert("Invalid stock value");
+      return;
+    }
+
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      await axios.put(
+        `${backendUrl}/api/products/stock/${productId}`,
+        { newStock },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        }
+      );
+      // Refresh products after update
+      fetchProducts();
+    } catch (error) {
+      console.error("Error updating stock:", error);
+      alert("Failed to update stock.");
+    }
+  };
+
+  if (loading) {
+    return <div>Loading products...</div>;
+  }
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Products</h1>
 
       <form onSubmit={handleCreateProduct} className="mb-8 border p-4">
-        <h2 className="text-xl font-bold mb-4">Add New Product</h2>
-        <div className="mb-2">
-          <label className="block font-semibold">Name:</label>
-          <input
-            type="text"
-            value={newProductData.name}
-            onChange={(e) =>
-              setNewProductData({ ...newProductData, name: e.target.value })
-            }
-            className="border px-2 py-1 w-full"
-            required
-          />
-        </div>
-        <div className="mb-2">
-          <label className="block font-semibold">Description:</label>
-          <input
-            type="text"
-            value={newProductData.description}
-            onChange={(e) =>
-              setNewProductData({
-                ...newProductData,
-                description: e.target.value,
-              })
-            }
-            className="border px-2 py-1 w-full"
-          />
-        </div>
-        <div className="mb-2">
-          <label className="block font-semibold">Price:</label>
-          <input
-            type="number"
-            step="0.01"
-            value={newProductData.price}
-            onChange={(e) =>
-                setNewProductData({
-                ...newProductData,
-                price: e.target.value,
-                })
-            }
-            className="border px-2 py-1 w-full"
-            required
-          />
+  <h2 className="text-xl font-bold mb-4">Add New Product</h2>
+  
+  <div className="mb-4">
+    <label className="block font-medium mb-1">Name</label>
+    <input
+      type="text"
+      value={newProductData.name}
+      onChange={(e) => setNewProductData({ ...newProductData, name: e.target.value })}
+      className="w-full border rounded px-2 py-1"
+      required
+    />
+  </div>
+  
+  <div className="mb-4">
+    <label className="block font-medium mb-1">Description</label>
+    <textarea
+      value={newProductData.description}
+      onChange={(e) => setNewProductData({ ...newProductData, description: e.target.value })}
+      className="w-full border rounded px-2 py-1"
+      required
+    ></textarea>
+  </div>
+  
+  <div className="mb-4">
+    <label className="block font-medium mb-1">Price</label>
+    <input
+      type="number"
+      value={newProductData.price}
+      onChange={(e) => setNewProductData({ ...newProductData, price: e.target.value })}
+      className="w-full border rounded px-2 py-1"
+      min="0"
+      step="0.01"
+      required
+    />
+  </div>
+  
+  <div className="mb-4">
+    <label className="block font-medium mb-1">Category</label>
+    <input
+      type="text"
+      value={newProductData.category}
+      onChange={(e) => setNewProductData({ ...newProductData, category: e.target.value })}
+      className="w-full border rounded px-2 py-1"
+      required
+    />
+  </div>
+  
+  <div className="mb-4">
+    <label className="block font-medium mb-1">Brand</label>
+    <input
+      type="text"
+      value={newProductData.brand}
+      onChange={(e) => setNewProductData({ ...newProductData, brand: e.target.value })}
+      className="w-full border rounded px-2 py-1"
+      required
+    />
+  </div>
+  
+  <div className="mb-4">
+    <label className="block font-medium mb-1">Stock</label>
+    <input
+      type="number"
+      value={newProductData.stock}
+      onChange={(e) => setNewProductData({ ...newProductData, stock: e.target.value })}
+      className="w-full border rounded px-2 py-1"
+      min="0"
+      required
+    />
+  </div>
+  
+  <div className="mb-4">
+    <label className="block font-medium mb-1">Image URL</label>
+    <input
+      type="url"
+      value={newProductData.imageURL}
+      onChange={(e) => setNewProductData({ ...newProductData, imageURL: e.target.value })}
+      className="w-full border rounded px-2 py-1"
+    />
+  </div>
+  
+  <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
+    Add Product
+  </button>
+</form>
 
-        </div>
-        <div className="mb-2">
-          <label className="block font-semibold">Category:</label>
-          <input
-            type="text"
-            value={newProductData.category}
-            onChange={(e) =>
-              setNewProductData({
-                ...newProductData,
-                category: e.target.value,
-              })
-            }
-            className="border px-2 py-1 w-full"
-          />
-        </div>
-        <div className="mb-2">
-          <label className="block font-semibold">Brand:</label>
-          <input
-            type="text"
-            value={newProductData.brand}
-            onChange={(e) =>
-              setNewProductData({ ...newProductData, brand: e.target.value })
-            }
-            className="border px-2 py-1 w-full"
-          />
-        </div>
-        <div className="mb-2">
-          <label className="block font-semibold">Stock:</label>
-          <input
-            type="number"
-            step="1"
-            value={newProductData.stock}
-            onChange={(e) =>
-                setNewProductData({
-                ...newProductData,
-                stock: e.target.value,
-                })
-            }
-            className="border px-2 py-1 w-full"
-         />
-
-        </div>
-        <div className="mb-4">
-          <label className="block font-semibold">Image URL:</label>
-          <input
-            type="text"
-            value={newProductData.imageURL}
-            onChange={(e) =>
-              setNewProductData({
-                ...newProductData,
-                imageURL: e.target.value,
-              })
-            }
-            className="border px-2 py-1 w-full"
-          />
-        </div>
-        <button
-          type="submit"
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Add Product
-        </button>
-      </form>
 
       <div className="overflow-x-auto">
         <table className="table-auto border-collapse border border-gray-300 w-full">
           <thead className="bg-gray-100">
             <tr>
-              <th className="border border-gray-300 px-6 py-4 text-left w-1/6">
-                ID
-              </th>
-              <th className="border border-gray-300 px-6 py-4 text-left w-1/4">
-                Name
-              </th>
-              <th className="border border-gray-300 px-6 py-4 text-left w-1/6">
-                Price
-              </th>
-              <th className="border border-gray-300 px-6 py-4 text-left w-1/12">
-                Stock
-              </th>
-              <th className="border border-gray-300 px-6 py-4 text-left w-1/12">
-              </th>
+              <th className="border border-gray-300 px-6 py-4 text-left w-1/6">ID</th>
+              <th className="border border-gray-300 px-6 py-4 text-left w-1/4">Name</th>
+              <th className="border border-gray-300 px-6 py-4 text-left w-1/6">Price</th>
+              <th className="border border-gray-300 px-6 py-4 text-left w-1/12">Stock</th>
+              <th className="border border-gray-300 px-6 py-4 text-left w-1/12"></th>
             </tr>
           </thead>
           <tbody>
@@ -203,14 +209,31 @@ const Products = () => {
                 <td className="border border-gray-300 px-6 py-4 break-words">
                   {product._id}
                 </td>
-                <td className="border border-gray-300 px-6 py-4">
-                  {product.name}
-                </td>
+                <td className="border border-gray-300 px-6 py-4">{product.name}</td>
                 <td className="border border-gray-300 px-6 py-4">
                   ${product.price.toFixed(2)}
                 </td>
-                <td className="border border-gray-300 px-6 py-4 text-center">
-                  {product.stock}
+                <td className="border border-gray-300 px-6 py-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={adjustedStocks[product._id]}
+                      onChange={(e) =>
+                        setAdjustedStocks((prev) => ({
+                          ...prev,
+                          [product._id]: Math.max(0, parseInt(e.target.value) || 0),
+                        }))
+                      }
+                      className="w-20 border rounded px-2 py-1"
+                      min="0"
+                    />
+                    <button
+                      onClick={() => handleStockUpdate(product._id)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded"
+                    >
+                      Update
+                    </button>
+                  </div>
                 </td>
                 <td className="border border-gray-300 px-6 py-4">
                   <button

@@ -7,15 +7,12 @@ const CategoryManagement = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [deleteCategoryName, setDeleteCategoryName] = useState("");
-  const [adjustedStocks, setAdjustedStocks] = useState({});
+  const [expandedCategory, setExpandedCategory] = useState(null);
 
-  // Fetch data
+  // Fetch data function remains the same
   const fetchData = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
-
-      // Fetch products
       const productsResponse = await axios.get(`${backendUrl}/api/products`, {
         headers: {
           "Content-Type": "application/json",
@@ -28,14 +25,6 @@ const CategoryManagement = () => {
       );
       setProducts(fetchedProducts);
 
-      setAdjustedStocks(
-        fetchedProducts.reduce((acc, product) => {
-          acc[product._id] = product.stock;
-          return acc;
-        }, {})
-      );
-
-      // Fetch categories
       const categoriesResponse = await axios.get(
         `${backendUrl}/api/products/categories`,
         {
@@ -49,7 +38,6 @@ const CategoryManagement = () => {
       const fetchedCategories = categoriesResponse.data.filter(
         (cat) => cat !== "Uncategorized"
       );
-
       setCategories(fetchedCategories);
     } catch (error) {
       console.error("Error fetching data:", error.response?.data || error.message);
@@ -60,17 +48,15 @@ const CategoryManagement = () => {
     fetchData();
   }, []);
 
-  // Add category
   const handleAddCategory = async (e) => {
     e.preventDefault();
-    if (!newCategoryName) {
+    if (!newCategoryName.trim()) {
       alert("Please enter a category name.");
       return;
     }
 
     try {
       const accessToken = localStorage.getItem("accessToken");
-
       await axios.post(
         `${backendUrl}/api/products/add-category`,
         { categoryName: newCategoryName },
@@ -91,13 +77,12 @@ const CategoryManagement = () => {
     }
   };
 
-  // Delete category
-  const handleRemoveCategory = async (e) => {
-    e.preventDefault();
-    if (!deleteCategoryName) {
-      alert("Please specify a category to remove.");
-      return;
-    }
+  const handleDeleteCategory = async (categoryName) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the category "${categoryName}"? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
 
     try {
       const accessToken = localStorage.getItem("accessToken");
@@ -106,134 +91,93 @@ const CategoryManagement = () => {
           "Content-Type": "application/json",
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
-        data: { category: deleteCategoryName },
+        data: { category: categoryName },
       });
 
-      alert(`Category "${deleteCategoryName}" removed successfully.`);
-      setDeleteCategoryName("");
+      alert(`Category "${categoryName}" deleted successfully.`);
       fetchData();
     } catch (error) {
-      console.error("Error removing category:", error.response?.data || error.message);
-      alert("Failed to remove category.");
-    }
-  };
-
-  // Update stock
-  const handleStockUpdate = async (productId) => {
-    const newStock = adjustedStocks[productId];
-    if (newStock === undefined || newStock < 0) {
-      alert("Invalid stock value");
-      return;
-    }
-
-    try {
-      const accessToken = localStorage.getItem("accessToken");
-      await axios.put(
-        `${backendUrl}/api/products/stock/${productId}`,
-        { newStock },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-          },
-        }
-      );
-
-      alert(`Stock for product ID "${productId}" updated to ${newStock}!`);
-      fetchData();
-    } catch (error) {
-      console.error("Error updating stock:", error.response?.data || error.message);
-      alert("Failed to update stock.");
+      console.error("Error deleting category:", error.response?.data || error.message);
+      alert("Failed to delete category.");
     }
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">Category & Stock Management</h1>
+    <div className="p-4 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Category Management</h1>
 
-      <div className="flex flex-wrap items-center gap-2 mb-6">
-        <input
-          type="text"
-          placeholder="Category Name"
-          value={newCategoryName}
-          onChange={(e) => setNewCategoryName(e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1"
-        />
-        <button
-          onClick={handleAddCategory}
-          className="bg-green-500 text-white px-4 py-1 rounded"
-        >
-          Add
-        </button>
-
-        <input
-          type="text"
-          placeholder="Category to Remove"
-          value={deleteCategoryName}
-          onChange={(e) => setDeleteCategoryName(e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1"
-        />
-        <button
-          onClick={handleRemoveCategory}
-          className="bg-red-500 text-white px-4 py-1 rounded"
-        >
-          Remove
-        </button>
+      {/* Add Category Form */}
+      <div className="mb-8 bg-white p-4 rounded-lg shadow">
+        <h2 className="text-xl font-semibold mb-4">Add New Category</h2>
+        <form onSubmit={handleAddCategory} className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Enter category name"
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            className="flex-1 border border-gray-300 rounded px-3 py-2"
+          />
+          <button
+            type="submit"
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Add Category
+          </button>
+        </form>
       </div>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Categories</h2>
-        {categories.length > 0 ? (
-          <ul className="list-disc pl-5">
-            {categories.map((category, index) => (
-              <li key={index}>{category}</li>
-            ))}
-          </ul>
-        ) : (
-          <p>No categories found.</p>
-        )}
-      </section>
+      {/* Categories List */}
+      <div className="bg-white rounded-lg shadow">
+        <h2 className="text-xl font-semibold p-4 border-b">Categories</h2>
+        {categories.map((category) => (
+          <div key={category} className="border-b last:border-b-0">
+            <div className="flex items-center justify-between p-4">
+              <button
+                onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
+                className="flex-1 text-left font-medium hover:text-blue-600"
+              >
+                {category}
+                <span className="ml-2 text-gray-500">
+                  ({products.filter(p => p.category === category).length} products)
+                </span>
+              </button>
+              <button
+                onClick={() => handleDeleteCategory(category)}
+                className="text-red-500 px-3 py-1 rounded hover:bg-red-50"
+              >
+                Delete
+              </button>
+            </div>
 
-      <table className="table-auto w-full border-collapse border border-gray-200">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-200 px-4 py-2">Product ID</th>
-            <th className="border border-gray-200 px-4 py-2">Name</th>
-            <th className="border border-gray-200 px-4 py-2">Category</th>
-            <th className="border border-gray-200 px-4 py-2">Stock</th>
-            <th className="border border-gray-200 px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr key={product._id}>
-              <td className="border border-gray-200 px-4 py-2">{product._id}</td>
-              <td className="border border-gray-200 px-4 py-2">{product.name}</td>
-              <td className="border border-gray-200 px-4 py-2">{product.category}</td>
-              <td className="border border-gray-200 px-4 py-2">{product.stock}</td>
-              <td className="border border-gray-200 px-4 py-2">
-                <input
-                  type="number"
-                  value={adjustedStocks[product._id]}
-                  onChange={(e) =>
-                    setAdjustedStocks((prev) => ({
-                      ...prev,
-                      [product._id]: Math.max(0, parseInt(e.target.value) || 0),
-                    }))
-                  }
-                  className="border border-gray-300 rounded px-2 py-1 w-20 mr-2"
-                />
-                <button
-                  onClick={() => handleStockUpdate(product._id)}
-                  className="bg-blue-500 text-white px-4 py-1 rounded"
-                >
-                  Update Stock
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            {/* Products in Category */}
+            {expandedCategory === category && (
+              <div className="bg-gray-50 p-4">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left">
+                      <th className="px-4 py-2">Product Name</th>
+                      <th className="px-4 py-2">Stock</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products
+                      .filter(product => product.category === category)
+                      .map(product => (
+                        <tr key={product._id}>
+                          <td className="px-4 py-2">{product.name}</td>
+                          <td className="px-4 py-2">{product.stock}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ))}
+        {categories.length === 0 && (
+          <p className="p-4 text-gray-500">No categories found.</p>
+        )}
+      </div>
     </div>
   );
 };
