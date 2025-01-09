@@ -11,21 +11,21 @@ export const ProductManagerProvider = ({ children }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // Fetch products from backend
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
-            try {
-                const response = await axios.get(`${backendUrl}/api/products`);
-                setProducts(response.data);
-            } catch (error) {
-                console.error('Failed to fetch products:', error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProducts();
-    }, []);
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+          const response = await axios.get(`${backendUrl}/api/products`);
+          setProducts(response.data);
+      } catch (error) {
+          console.error('Failed to fetch products:', error.message);
+      } finally {
+          setLoading(false);
+      }
+  };
+
+  useEffect(() => {
+      fetchProducts();
+  }, []);
 
     // Function to set price for a product
     const setPrice = async (productId, newPrice) => {
@@ -107,7 +107,7 @@ export const ProductManagerProvider = ({ children }) => {
       };
 
     return (
-        <ProductManagerContext.Provider value={{ products, loading, setPrice, applyDiscount, logout, deleteProduct, createProduct }}>
+        <ProductManagerContext.Provider value={{ products, loading, setPrice, applyDiscount, logout, deleteProduct, createProduct, fetchProducts }}>
             {children}
         </ProductManagerContext.Provider>
     );

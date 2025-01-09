@@ -9,25 +9,36 @@ import axios from 'axios';
 const Home = () => {
   const navigate = useNavigate();
   const { addProductToCart } = useCart();
+  const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState('');
   const [products, setProducts] = useState([]);
 
-  // Fetch products from the backend
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://localhost:5001/api/products/categories");
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/products');
-        setProducts(response.data.slice(0, 4));
+        const res = await axios.get('http://localhost:5001/api/products');
+        setProducts(res.data.slice(0, 4));
       } catch (err) {
         console.error('Failed to fetch products:', err.message);
       }
     };
 
+    fetchCategories();
     fetchProducts();
   }, []);
 
   const handleCategoryClick = (category) => {
     setActiveCategory(category);
+    navigate(`/products?category=${category}`);
   };
 
   // Handle adding a product to the cart
@@ -78,39 +89,23 @@ const Home = () => {
           >
             All Products
           </Link>
-          <Link
-            to="/category/food"
-            onClick={() => handleCategoryClick('food')}
-            className={`text-xl mx-10 pb-2 ${
-              activeCategory === 'food'
-                ? 'border-b-4 border-green-500'
-                : 'hover:border-b-4 hover:border-green-900'
-            }`}
-          >
-            Food
-          </Link>
-          <Link
-            to="/category/cosmetics"
-            onClick={() => handleCategoryClick('cosmetics')}
-            className={`text-xl mx-10 pb-2 ${
-              activeCategory === 'cosmetics'
-                ? 'border-b-4 border-green-500'
-                : 'hover:border-b-4 hover:border-green-900'
-            }`}
-          >
-            Cosmetics
-          </Link>
-          <Link
-            to="/category/cleaning"
-            onClick={() => handleCategoryClick('cleaning')}
-            className={`text-xl mx-10 pb-2 ${
-              activeCategory === 'cleaning'
-                ? 'border-b-4 border-green-500'
-                : 'hover:border-b-4 hover:border-green-900'
-            }`}
-          >
-            Cleaning
-          </Link>
+          {categories.map((cat) => {
+            const displayName = cat.charAt(0).toUpperCase() + cat.slice(1);
+            return (
+              <Link
+                key={cat}
+                to={`/products?category=${cat}`}
+                onClick={() => handleCategoryClick(cat)}
+                className={`text-xl mx-10 pb-2 ${
+                  activeCategory === cat
+                    ? 'border-b-4 border-green-500'
+                    : 'hover:border-b-4 hover:border-green-900'
+                }`}
+              >
+                {displayName}
+              </Link>
+            );
+          })}
         </div>
       </div>
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useProductManager } from "../contexts/ProductManager";
 
+const backendUrl = "http://localhost:5001";
+
 const Products = () => {
   const {
     products,
@@ -26,7 +28,7 @@ const Products = () => {
   useEffect(() => {
     setAdjustedStocks(
       products.reduce((acc, product) => {
-        acc[product._id] = product.stock;
+        acc[product._id] = product.stock || 0;
         return acc;
       }, {})
     );
@@ -215,18 +217,17 @@ const Products = () => {
                 </td>
                 <td className="border border-gray-300 px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={adjustedStocks[product._id]}
-                      onChange={(e) =>
-                        setAdjustedStocks((prev) => ({
-                          ...prev,
-                          [product._id]: Math.max(0, parseInt(e.target.value) || 0),
-                        }))
-                      }
-                      className="w-20 border rounded px-2 py-1"
-                      min="0"
-                    />
+                  <input
+                    type="number"
+                    value={adjustedStocks[product._id] ?? 0} 
+                    onChange={(e) => {
+                      const intValue = parseInt(e.target.value) || 0;
+                      setAdjustedStocks((prev) => ({
+                        ...prev,
+                        [product._id]: Math.max(0, intValue),
+                      }));
+                    }}
+                  />
                     <button
                       onClick={() => handleStockUpdate(product._id)}
                       className="bg-blue-500 text-white px-3 py-1 rounded"
