@@ -251,7 +251,7 @@ const Product = () => {
               <span className="font-semibold">Distributor:</span> {product.distributor}
             </p>
             <p className="mt-2 text-sm">
-              <span className="font-semibold">Expiration Date:</span> {product.expirationDate.slice(0, 7)}
+              <span className="font-semibold">Expiration Date:</span> {product.expirationDate?.slice(0, 7) || "N/A"}
             </p>
           </div>
           <p className={`mt-4 ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
