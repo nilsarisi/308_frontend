@@ -5,13 +5,9 @@ import { useProductManager } from "../contexts/ProductManager";
 const backendUrl = "http://localhost:5001";
 
 const Products = () => {
-  const {
-    products,
-    loading,
-    createProduct,
-    deleteProduct,
-    fetchProducts,
-  } = useProductManager();
+  const { products, loading, deleteProduct, fetchProducts } = useProductManager();
+  // If createProduct is available and can handle normal JSON, feel free to use it:
+  // const { createProduct } = useProductManager(); 
 
   const [newProductData, setNewProductData] = useState({
     name: "",
@@ -23,12 +19,10 @@ const Products = () => {
     distributor: "",
     serialNumber: "",
     expirationDate: "",
+    imageURL: "", // We'll store the URL here
   });
 
-  // We'll store the local file upload here (if needed)
-  const [selectedFile, setSelectedFile] = useState(null);
-
-  const [categories, setCategories] = useState([]); // Array of categories from backend
+  const [categories, setCategories] = useState([]); // Fetched categories
   const [adjustedStocks, setAdjustedStocks] = useState({});
   const [formErrors, setFormErrors] = useState({});
 
@@ -42,26 +36,25 @@ const Products = () => {
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           },
         });
-        setCategories(response.data); // store categories in state
+        setCategories(response.data); 
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
-
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    // Populate adjustedStocks for each product in the store
+    // Populate adjustedStocks for each product
     setAdjustedStocks(
       products.reduce((acc, product) => {
-        acc[product._id] = product.stock || 0;
+        acc[product._id] = product.stock ?? 0;
         return acc;
       }, {})
     );
   }, [products]);
 
-  // Basic validation that checks if any required field is empty
+  // Basic validation: each required field must not be empty
   const handleValidation = () => {
     const errors = {};
     Object.keys(newProductData).forEach((key) => {
@@ -73,44 +66,32 @@ const Products = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
-
+  // Create product using JSON (no FormData, just imageURL)
   const handleCreateProduct = async (e) => {
     e.preventDefault();
     if (!handleValidation()) return;
 
+    // Convert price & stock to correct numeric types
     const parsedPrice = parseFloat(newProductData.price) || 0.0;
     const parsedStock = parseInt(newProductData.stock, 10) || 0;
 
     try {
-      const formData = new FormData();
-      formData.append("name", newProductData.name);
-      formData.append("description", newProductData.description);
-      formData.append("price", parsedPrice);
-      formData.append("category", newProductData.category);
-      formData.append("brand", newProductData.brand);
-      formData.append("stock", parsedStock);
-      formData.append("distributor", newProductData.distributor);
-      formData.append("serialNumber", newProductData.serialNumber);
-      formData.append("expirationDate", newProductData.expirationDate);
-
-      if (selectedFile) {
-        formData.append("image", selectedFile);
-      }
-
+      const productData = {
+        ...newProductData,
+        price: parsedPrice,
+        stock: parsedStock,
+      };
+      
+      // POST as JSON
       const accessToken = localStorage.getItem("accessToken");
-      await axios.post(`${backendUrl}/api/products`, formData, {
+      await axios.post(`${backendUrl}/api/products`, productData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
       });
 
-      // Reset everything
+      // Reset form
       setNewProductData({
         name: "",
         description: "",
@@ -121,11 +102,11 @@ const Products = () => {
         distributor: "",
         serialNumber: "",
         expirationDate: "",
+        imageURL: "",
       });
-      setSelectedFile(null);
       setFormErrors({});
 
-      // Refresh the product list
+      // Refresh products
       fetchProducts();
     } catch (error) {
       console.error("Create product failed:", error);
@@ -150,7 +131,6 @@ const Products = () => {
       alert("Invalid stock value");
       return;
     }
-
     try {
       const accessToken = localStorage.getItem("accessToken");
       await axios.put(
@@ -178,6 +158,7 @@ const Products = () => {
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Products</h1>
 
+      {/* Form to create new product */}
       <form onSubmit={handleCreateProduct} className="mb-8 border p-4">
         <h2 className="text-xl font-bold mb-4">Add New Product</h2>
 
@@ -187,19 +168,19 @@ const Products = () => {
           </div>
         )}
 
+        {/* Name */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Name</label>
           <input
             type="text"
             value={newProductData.name}
-            onChange={(e) =>
-              setNewProductData({ ...newProductData, name: e.target.value })
-            }
+            onChange={(e) => setNewProductData({ ...newProductData, name: e.target.value })}
             className="w-full border rounded px-2 py-1"
           />
           {formErrors.name && <p className="text-red-500 text-sm">{formErrors.name}</p>}
         </div>
 
+        {/* Description */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Description</label>
           <textarea
@@ -214,14 +195,13 @@ const Products = () => {
           )}
         </div>
 
+        {/* Price */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Price</label>
           <input
             type="number"
             value={newProductData.price}
-            onChange={(e) =>
-              setNewProductData({ ...newProductData, price: e.target.value })
-            }
+            onChange={(e) => setNewProductData({ ...newProductData, price: e.target.value })}
             className="w-full border rounded px-2 py-1"
             min="0"
             step="0.01"
@@ -229,14 +209,12 @@ const Products = () => {
           {formErrors.price && <p className="text-red-500 text-sm">{formErrors.price}</p>}
         </div>
 
-        {/* Category dropdown instead of text input */}
+        {/* Category Dropdown */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Category</label>
           <select
             value={newProductData.category}
-            onChange={(e) =>
-              setNewProductData({ ...newProductData, category: e.target.value })
-            }
+            onChange={(e) => setNewProductData({ ...newProductData, category: e.target.value })}
             className="w-full border rounded px-2 py-1"
           >
             <option value="">Select a Category</option>
@@ -251,49 +229,46 @@ const Products = () => {
           )}
         </div>
 
+        {/* Brand */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Brand</label>
           <input
             type="text"
             value={newProductData.brand}
-            onChange={(e) =>
-              setNewProductData({ ...newProductData, brand: e.target.value })
-            }
+            onChange={(e) => setNewProductData({ ...newProductData, brand: e.target.value })}
             className="w-full border rounded px-2 py-1"
           />
           {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
         </div>
 
+        {/* Stock */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Stock</label>
           <input
             type="number"
             value={newProductData.stock}
-            onChange={(e) =>
-              setNewProductData({ ...newProductData, stock: e.target.value })
-            }
+            onChange={(e) => setNewProductData({ ...newProductData, stock: e.target.value })}
             className="w-full border rounded px-2 py-1"
             min="0"
           />
           {formErrors.stock && <p className="text-red-500 text-sm">{formErrors.stock}</p>}
         </div>
 
-        {/* Local File Upload */}
+        {/* Image URL (Required by your backend schema) */}
         <div className="mb-4">
-          <label className="block font-medium mb-1">
-            Product Image (PNG, JPEG, or SVG)
-          </label>
+          <label className="block font-medium mb-1">Image URL</label>
           <input
-            type="file"
-            accept="image/png, image/jpeg, image/svg+xml"
-            onChange={handleFileChange}
+            type="text"
+            value={newProductData.imageURL}
+            onChange={(e) => setNewProductData({ ...newProductData, imageURL: e.target.value })}
             className="w-full border rounded px-2 py-1"
           />
-          <p className="text-sm text-gray-500 mt-1">
-            Allowed file types: .png, .jpeg, .svg
-          </p>
+          {formErrors.imageURL && (
+            <p className="text-red-500 text-sm">{formErrors.imageURL}</p>
+          )}
         </div>
 
+        {/* Distributor */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Distributor</label>
           <input
@@ -309,6 +284,7 @@ const Products = () => {
           )}
         </div>
 
+        {/* Serial Number */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Serial Number</label>
           <input
@@ -324,6 +300,7 @@ const Products = () => {
           )}
         </div>
 
+        {/* Expiration Date */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Expiration Date</label>
           <input
@@ -344,7 +321,7 @@ const Products = () => {
         </button>
       </form>
 
-      {/* Display existing products in a table */}
+      {/* Products Table */}
       <div className="overflow-x-auto">
         <table className="table-auto border-collapse border border-gray-300 w-full">
           <thead className="bg-gray-100">
@@ -362,9 +339,11 @@ const Products = () => {
                 <td className="border border-gray-300 px-6 py-4 break-words">
                   {product._id}
                 </td>
-                <td className="border border-gray-300 px-6 py-4">{product.name}</td>
                 <td className="border border-gray-300 px-6 py-4">
-                  ${product.price.toFixed(2)}
+                  {product.name}
+                </td>
+                <td className="border border-gray-300 px-6 py-4">
+                  ₺{product.price.toFixed(2)}
                 </td>
                 <td className="border border-gray-300 px-6 py-4">
                   <div className="flex items-center gap-2">
