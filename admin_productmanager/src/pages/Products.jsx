@@ -20,8 +20,10 @@ const Products = () => {
     category: "",
     brand: "",
     stock: "",
-    // We’ll remove imageURL from the normal product data,
-    // since we will upload an actual file with form data.
+    imageURL: "",
+    distributor: "",
+    serialNumber: "",
+    expirationDate: "",
   });
 
   // The "selectedFile" will store the actual file the user chooses
@@ -59,6 +61,19 @@ const Products = () => {
     );
   }, [products]);
 
+  const handleValidation = () => {
+    const errors = {};
+
+    Object.keys(newProductData).forEach((key) => {
+      if (!newProductData[key]) {
+        errors[key] = `${key.charAt(0).toUpperCase() + key.slice(1)} is required.`;
+      }
+    });
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0; 
+  };
+
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -67,6 +82,10 @@ const Products = () => {
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
+
+
+    if (!handleValidation()) return;
+
     const parsedPrice = parseFloat(newProductData.price) || 0.0;
     const parsedStock = parseInt(newProductData.stock, 10) || 0;
 
@@ -106,11 +125,12 @@ const Products = () => {
         category: "",
         brand: "",
         stock: "",
+        imageURL: "",
+        distributor: "",
+        serialNumber: "",
+        expirationDate: "",
       });
-      setSelectedFile(null);
-
-      // Refresh products
-      fetchProducts();
+      setFormErrors({});
     } catch (error) {
       console.error("Create product failed:", error);
       alert("Failed to create product. Please check console for details.");
@@ -147,7 +167,6 @@ const Products = () => {
           },
         }
       );
-      // Refresh products after update
       fetchProducts();
     } catch (error) {
       console.error("Error updating stock:", error);
@@ -167,25 +186,37 @@ const Products = () => {
       <form onSubmit={handleCreateProduct} className="mb-8 border p-4">
         <h2 className="text-xl font-bold mb-4">Add New Product</h2>
 
+        {Object.keys(formErrors).length > 0 && (
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+            Please fill in all required fields.
+          </div>
+        )}
+
         <div className="mb-4">
           <label className="block font-medium mb-1">Name</label>
           <input
             type="text"
             value={newProductData.name}
-            onChange={(e) => setNewProductData({ ...newProductData, name: e.target.value })}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, name: e.target.value })
+            }
             className="w-full border rounded px-2 py-1"
-            required
           />
+          {formErrors.name && <p className="text-red-500 text-sm">{formErrors.name}</p>}
         </div>
 
         <div className="mb-4">
           <label className="block font-medium mb-1">Description</label>
           <textarea
             value={newProductData.description}
-            onChange={(e) => setNewProductData({ ...newProductData, description: e.target.value })}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, description: e.target.value })
+            }
             className="w-full border rounded px-2 py-1"
-            required
-          />
+          ></textarea>
+          {formErrors.description && (
+            <p className="text-red-500 text-sm">{formErrors.description}</p>
+          )}
         </div>
 
         <div className="mb-4">
@@ -193,30 +224,29 @@ const Products = () => {
           <input
             type="number"
             value={newProductData.price}
-            onChange={(e) => setNewProductData({ ...newProductData, price: e.target.value })}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, price: e.target.value })
+            }
             className="w-full border rounded px-2 py-1"
             min="0"
             step="0.01"
-            required
           />
+          {formErrors.price && <p className="text-red-500 text-sm">{formErrors.price}</p>}
         </div>
 
-        {/* 4. Category drop-down fetched from database */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Category</label>
-          <select
+          <input
+            type="text"
             value={newProductData.category}
-            onChange={(e) => setNewProductData({ ...newProductData, category: e.target.value })}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, category: e.target.value })
+            }
             className="w-full border rounded px-2 py-1"
-            required
-          >
-            <option value="">Select a category</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+          />
+          {formErrors.category && (
+            <p className="text-red-500 text-sm">{formErrors.category}</p>
+          )}
         </div>
 
         <div className="mb-4">
@@ -224,10 +254,12 @@ const Products = () => {
           <input
             type="text"
             value={newProductData.brand}
-            onChange={(e) => setNewProductData({ ...newProductData, brand: e.target.value })}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, brand: e.target.value })
+            }
             className="w-full border rounded px-2 py-1"
-            required
           />
+          {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
         </div>
 
         <div className="mb-4">
@@ -235,27 +267,73 @@ const Products = () => {
           <input
             type="number"
             value={newProductData.stock}
-            onChange={(e) => setNewProductData({ ...newProductData, stock: e.target.value })}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, stock: e.target.value })
+            }
             className="w-full border rounded px-2 py-1"
             min="0"
-            required
           />
+          {formErrors.stock && <p className="text-red-500 text-sm">{formErrors.stock}</p>}
         </div>
 
-        {/* 5. File upload for images (png, jpeg, svg) + small disclaimer */}
         <div className="mb-4">
-          <label className="block font-medium mb-1">
-            Upload Image (Only .png, .jpeg, or .svg allowed)
-          </label>
+          <label className="block font-medium mb-1">Image URL</label>
           <input
-            type="file"
-            accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
-            onChange={handleFileChange}
+            type="url"
+            value={newProductData.imageURL}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, imageURL: e.target.value })
+            }
             className="w-full border rounded px-2 py-1"
           />
-          <p className="text-sm text-gray-500 mt-1">
-            Allowed file types: .png, .jpeg, .svg
-          </p>
+          {formErrors.imageURL && (
+            <p className="text-red-500 text-sm">{formErrors.imageURL}</p>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Distributor</label>
+          <input
+            type="text"
+            value={newProductData.distributor}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, distributor: e.target.value })
+            }
+            className="w-full border rounded px-2 py-1"
+          />
+          {formErrors.distributor && (
+            <p className="text-red-500 text-sm">{formErrors.distributor}</p>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Serial Number</label>
+          <input
+            type="text"
+            value={newProductData.serialNumber}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, serialNumber: e.target.value })
+            }
+            className="w-full border rounded px-2 py-1"
+          />
+          {formErrors.serialNumber && (
+            <p className="text-red-500 text-sm">{formErrors.serialNumber}</p>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Expiration Date</label>
+          <input
+            type="date"
+            value={newProductData.expirationDate}
+            onChange={(e) =>
+              setNewProductData({ ...newProductData, expirationDate: e.target.value })
+            }
+            className="w-full border rounded px-2 py-1"
+          />
+          {formErrors.expirationDate && (
+            <p className="text-red-500 text-sm">{formErrors.expirationDate}</p>
+          )}
         </div>
 
         <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
@@ -263,7 +341,6 @@ const Products = () => {
         </button>
       </form>
 
-      {/* Products Table */}
       <div className="overflow-x-auto">
         <table className="table-auto border-collapse border border-gray-300 w-full">
           <thead className="bg-gray-100">
