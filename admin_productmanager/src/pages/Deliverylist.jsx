@@ -49,14 +49,14 @@ const DeliveryList = () => {
           <tr>
             <th className="w-40 border border-gray-200 px-2 py-2 break-words">Delivery ID</th>
             <th className="w-40 border border-gray-200 px-2 py-2 break-words">Customer ID</th>
-            <th className="w-40 border border-gray-200 px-2 py-2 break-words">Customer Name</th>
+            {/* (1) Customer Name sütunu kaldırıldı */}
             <th className="w-40 border border-gray-200 px-2 py-2 break-words">Product ID</th>
-            <th className="w-44 border border-gray-200 px-2 py-2 break-words">Product Name</th>
+            {/* (2) Product Name sütunu kaldırıldı */}
             <th className="w-20 border border-gray-200 px-2 py-2 break-words">Quantity</th>
             <th className="w-24 border border-gray-200 px-2 py-2 break-words">Total Price</th>
             <th className="w-48 border border-gray-200 px-2 py-2 break-words">Delivery Address</th>
             <th className="w-24 border border-gray-200 px-2 py-2 break-words">Completed</th>
-            <th className="w-24 border border-gray-200 px-2 py-2 break-words">Refund Status</th>  
+            <th className="w-24 border border-gray-200 px-2 py-2 break-words">Refund Status</th>
           </tr>
         </thead>
         <tbody>
@@ -81,20 +81,13 @@ const DeliveryList = () => {
                     >
                       {delivery.customerId}
                     </td>
-                    <td
-                      className="border border-gray-200 px-2 py-2 break-words align-top"
-                      rowSpan={delivery.products.length}
-                    >
-                      {delivery.customerName}
-                    </td>
+                    {/* (1) Customer Name hücresi kaldırıldı */}
                   </>
                 )}
                 <td className="border border-gray-200 px-2 py-2 break-words align-top">
                   {product.productId}
                 </td>
-                <td className="border border-gray-200 px-2 py-2 break-words align-top">
-                  {product.productName}
-                </td>
+                {/* (2) Product Name hücresi kaldırıldı */}
                 <td className="border border-gray-200 px-2 py-2 break-words align-top">
                   {product.quantity} pcs
                 </td>
@@ -127,7 +120,7 @@ const DeliveryList = () => {
                   </>
                 )}
                 <td className="border border-gray-200 px-2 py-2 break-words align-top">
-                  {product.refundStatus}  
+                  {product.refundStatus}
                 </td>
               </tr>
             ));
