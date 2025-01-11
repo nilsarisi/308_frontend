@@ -24,6 +24,27 @@ const Products = () => {
   });
 
   const [adjustedStocks, setAdjustedStocks] = useState({});
+  const [categories, setCategories] = useState([]);
+
+
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+        const response = await axios.get(`${backendUrl}/api/products/distinct-categories`, {
+          headers: {
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        });
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+  
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     setAdjustedStocks(
@@ -145,15 +166,21 @@ const Products = () => {
   </div>
   
   <div className="mb-4">
-    <label className="block font-medium mb-1">Category</label>
-    <input
-      type="text"
-      value={newProductData.category}
-      onChange={(e) => setNewProductData({ ...newProductData, category: e.target.value })}
-      className="w-full border rounded px-2 py-1"
-      required
-    />
-  </div>
+  <label className="block font-medium mb-1">Category</label>
+  <select
+    value={newProductData.category}
+    onChange={(e) => setNewProductData({ ...newProductData, category: e.target.value })}
+    className="w-full border rounded px-2 py-1"
+    required
+  >
+    <option value="">Select a category</option>
+    {categories.map((category) => (
+      <option key={category} value={category}>
+        {category}
+      </option>
+    ))}
+  </select>
+</div>
   
   <div className="mb-4">
     <label className="block font-medium mb-1">Brand</label>
