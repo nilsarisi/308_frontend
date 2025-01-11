@@ -1,24 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-// Chart imports
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend
-} from "chart.js";
-import { Pie } from "react-chartjs-2";
-
-ChartJS.register(ArcElement, Tooltip, Legend);
-
 const backendUrl = "http://localhost:5001";
 
 function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState({
     totalProducts: 0,
     lowStockProducts: [],
-    totalCategories: 0, 
+    totalCategories: 0, // Kategori sayısını da tutuyoruz
   });
   const [orderSummary, setOrderSummary] = useState({
     totalOrders: 0,
@@ -32,8 +21,8 @@ function AdminDashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchDashboardData(); 
-    fetchOrderSummary();  
+    fetchDashboardData(); // Fetch product summary
+    fetchOrderSummary();  // Fetch order summary
   }, []);
 
   const fetchDashboardData = async () => {
@@ -44,6 +33,7 @@ function AdminDashboard() {
       const totalProducts = products.length;
       const lowStockProducts = products.filter((p) => p.stock < 5);
 
+      // Kategorileri hesaplayıp sayıyoruz (new Set)
       const distinctCategories = [...new Set(products.map((p) => p.category))];
       const totalCategories = distinctCategories.length;
 
@@ -70,6 +60,8 @@ function AdminDashboard() {
         },
       });
 
+      console.log("Fetched orders:", response.data);
+
       if (Array.isArray(response.data)) {
         const orders = response.data;
         const totalOrders = orders.length;
@@ -90,7 +82,6 @@ function AdminDashboard() {
       } else {
         throw new Error("API did not return an array.");
       }
-      setError("");
     } catch (err) {
       console.error("Error fetching order summary:", err.response?.data || err.message);
       setError("Failed to fetch order summary.");
@@ -110,6 +101,23 @@ function AdminDashboard() {
     margin: "2rem auto",
     maxWidth: "800px",
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  };
+
+  const welcomeStyle = {
+    textAlign: "center",
+    marginBottom: "1rem",
+  };
+
+  const titleStyle = {
+    fontSize: "2.5rem",
+    fontWeight: "bold",
+    color: "#2c3e50",
+    marginBottom: "0.5rem",
+  };
+
+  const subtitleStyle = {
+    fontSize: "1.25rem",
+    color: "#7f8c8d",
   };
 
   const cardStyle = {
@@ -141,43 +149,13 @@ function AdminDashboard() {
     borderRadius: "4px",
   };
 
-  // CHART DATA
-  const chartData = {
-    labels: ["Delivered", "In Transit", "Processing"],
-    datasets: [
-      {
-        label: "Orders",
-        data: [
-          orderSummary.deliveredCount,
-          orderSummary.inTransitCount,
-          orderSummary.processingCount,
-        ],
-        backgroundColor: ["#4CAF50", "#2196F3", "#FF9800"],
-        hoverOffset: 4,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top",
-      },
-    },
-  };
-
   return (
     <div style={containerStyle}>
-      {/* HEADER */}
-      <div style={{ textAlign: "center" }}>
-        <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "0.5rem" }}>
-          Product Manager Home
-        </h1>
-        {/* Sadece Welcome yazısı */}
-        <p style={{ fontSize: "1rem", color: "#666", marginBottom: "2rem" }}>
-          Welcome to your main dashboard!
+      {/* Welcome Message */}
+      <div style={welcomeStyle}>
+        <h1 style={titleStyle}>Product Manager Home</h1>
+        <p style={subtitleStyle}>
+          Welcome to your main dashboard! Manage your products and monitor orders efficiently.
         </p>
       </div>
 
@@ -194,9 +172,16 @@ function AdminDashboard() {
           <ul style={{ paddingLeft: "1.2rem" }}>
             {dashboardData.lowStockProducts.map((prod) => (
               <li key={prod._id} style={listItemStyle}>
+                {/* Resim varsa gösteriyoruz */}
                 {prod.imageURL && (
-                  <img src={prod.imageURL} alt={prod.name} style={imgStyle} />
+                  <img
+                    src={prod.imageURL}
+                    alt={prod.name}
+                    style={imgStyle}
+                  />
                 )}
+
+                {/* Ürün adı, kategori ve stok bilgisi */}
                 <div>
                   <strong>{prod.name}</strong>
                   {prod.category && (
@@ -219,9 +204,9 @@ function AdminDashboard() {
       <div style={cardStyle}>
         <h2 style={cardTitleStyle}>Order Summary</h2>
         <p>Total Orders: {orderSummary.totalOrders}</p>
-        <div style={{ width: "100%", height: "300px" }}>
-          <Pie data={chartData} options={chartOptions} />
-        </div>
+        <p>Delivered: {orderSummary.deliveredCount}</p>
+        <p>In Transit: {orderSummary.inTransitCount}</p>
+        <p>Processing: {orderSummary.processingCount}</p>
         {error && <p style={{ color: "red" }}>{error}</p>}
       </div>
     </div>
