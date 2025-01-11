@@ -1,11 +1,10 @@
-// Products.jsx - Page to Display Products
+// Products.jsx
 import React, { useState } from "react";
 import { useSalesManager } from "../contexts/SalesManager";
 
 const Products = () => {
   const { products, loading, setPrice, applyDiscount } = useSalesManager();
   
-  // Local states for price inputs, discount inputs, and search term
   const [priceInput, setPriceInput] = useState({});
   const [discountInput, setDiscountInput] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,7 +13,6 @@ const Products = () => {
     return <div>Loading products...</div>;
   }
 
-  // Handlers for price/disc. changes
   const handlePriceChange = (productId, value) => {
     setPriceInput({ ...priceInput, [productId]: value });
   };
@@ -23,7 +21,6 @@ const Products = () => {
     setDiscountInput({ ...discountInput, [productId]: value });
   };
 
-  // Apply new price
   const handleSetPrice = (productId) => {
     const newPrice = parseFloat(priceInput[productId]);
     if (!isNaN(newPrice)) {
@@ -31,7 +28,6 @@ const Products = () => {
     }
   };
 
-  // Apply discount
   const handleApplyDiscount = (productId) => {
     const discountPercentage = parseFloat(discountInput[productId]);
     if (!isNaN(discountPercentage)) {
@@ -39,12 +35,10 @@ const Products = () => {
     }
   };
 
-  // Search handler
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  // Filter products by search term (case-insensitive)
   const filteredProducts = products.filter((prod) =>
     prod.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -145,11 +139,11 @@ const Products = () => {
                           onChange={(e) =>
                             handlePriceChange(product._id, e.target.value)
                           }
-                          className="border rounded px-4 py-1 w-36"
+                          className="border rounded px-4 py-2 w-48"
                         />
                         <button
                           onClick={() => handleSetPrice(product._id)}
-                          className="px-4 py-1 bg-blue-500 text-white rounded"
+                          className="px-4 py-2 w-36 bg-blue-500 text-white rounded"
                         >
                           Set Price
                         </button>
@@ -163,11 +157,11 @@ const Products = () => {
                           onChange={(e) =>
                             handleDiscountChange(product._id, e.target.value)
                           }
-                          className="border rounded px-4 py-1 w-36"
+                          className="border rounded px-4 py-2 w-48"
                         />
                         <button
                           onClick={() => handleApplyDiscount(product._id)}
-                          className="px-4 py-1 bg-green-500 text-white rounded"
+                          className="px-4 py-2 w-36 bg-green-500 text-white rounded"
                         >
                           Apply Discount
                         </button>

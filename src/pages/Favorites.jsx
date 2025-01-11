@@ -8,7 +8,9 @@ const Favorites = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl">Please <Link to="/login" className="text-blue-600 underline">log in</Link> to view your favorites.</p>
+        <p className="text-xl">
+          Please <Link to="/login" className="text-blue-600 underline">log in</Link> to view your favorites.
+        </p>
       </div>
     );
   }
@@ -52,30 +54,71 @@ const Favorites = () => {
     addProductToCart(productToAdd);
     alert(`${product.name} added to cart!`);
   };
+
   return (
     <div className="min-h-screen p-4 bg-gray-50">
       <h1 className="text-3xl font-bold text-center mb-6">Your Favorites</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {favorites.map((item) => (
-          <div key={item._id} className="bg-white border rounded-lg shadow-sm p-4 flex flex-col">
-            <img src={item.imageURL} alt={item.name} className="w-full h-40 object-cover mb-4 rounded" />
-            <h2 className="text-xl font-semibold mb-2">{item.name}</h2>
-            <p className="text-gray-700 mb-4">${item.price}</p>
-            <button
-              className="mt-auto bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 mb-2"
-              onClick={() => handleRemoveFavorite(item._id)}
-            >
-              Remove from Favorites
-            </button>
-            <button
-              onClick={() => handleAddToCart(item)}
-              className={`mt-auto ${item.stock === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-yellow-500'} text-white py-2 px-4 rounded`}
-              disabled={item.stock === 0}
-            >
-              {item.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-            </button>
-          </div>
-        ))}
+        {favorites.map((item) => {
+          // Calculate discounted price if applicable
+          const discountedPrice = item.originalPrice
+            ? item.originalPrice - (item.originalPrice * item.discountPercentage) / 100
+            : item.price;
+
+          return (
+            <div key={item._id} className="bg-white border rounded-lg shadow-sm p-4 flex flex-col">
+              {/* Make image clickable to navigate to product details */}
+              <Link to={`/products/${item._id}`}>
+                <img
+                  src={item.imageURL}
+                  alt={item.name}
+                  className="w-full h-40 object-cover mb-4 rounded hover:opacity-90 transition-opacity"
+                />
+              </Link>
+
+              {/* Make name clickable to navigate to product details */}
+              <Link to={`/product/${item._id}`}>
+                <h2 className="text-xl font-semibold mb-2 hover:text-blue-600 transition-colors">
+                  {item.name}
+                </h2>
+              </Link>
+
+              {/* Discount/Price Section */}
+              {item.discountPercentage && item.discountPercentage > 0 ? (
+                <div className="mb-4">
+                  <p className="text-sm line-through text-gray-500">
+                    ₺{item.originalPrice?.toFixed(2)}
+                  </p>
+                  <p className="text-lg text-green-600 font-bold">
+                    ₺{discountedPrice.toFixed(2)} ({item.discountPercentage}% OFF)
+                  </p>
+                </div>
+              ) : (
+                <p className="text-lg text-green-600 font-bold mb-4">
+                  ₺{item.price?.toFixed(2)}
+                </p>
+              )}
+
+              <button
+                className="mt-auto bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 mb-2"
+                onClick={() => handleRemoveFavorite(item._id)}
+              >
+                Remove from Favorites
+              </button>
+              <button
+                onClick={() => handleAddToCart(item)}
+                className={`mt-auto ${
+                  item.stock === 0
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : 'bg-yellow-500 hover:bg-yellow-600'
+                } text-white py-2 px-4 rounded`}
+                disabled={item.stock === 0}
+              >
+                {item.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
