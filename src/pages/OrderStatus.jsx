@@ -123,7 +123,7 @@ const OrderStatus = () => {
                   </p>
                 ) :(
   // Only show refund button if within returnable period
-  new Date() < new Date(order.returnableUntil) && (
+  new Date() < new Date(order.isReturnable) && (
     <button
       className={`mt-2 py-1 px-2 rounded ${
         item.isReturnable
