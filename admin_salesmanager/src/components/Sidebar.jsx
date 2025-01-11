@@ -24,6 +24,14 @@ const Sidebar = () => {
                     <img src={refund_icon} alt="Refunds" style={styles.icon} />
                     <span>Refunds</span>
                 </NavLink>
+                <NavLink
+                    to="/home"
+                    style={styles.navLink}
+                    activeStyle={styles.activeNavLink}
+                    >
+                    <img src={orders_icon} alt="Home" style={styles.icon} />
+                    <span>Home</span>
+                </NavLink>
             </nav>
         </div>
     );
