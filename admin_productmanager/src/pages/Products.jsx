@@ -20,20 +20,20 @@ const Products = () => {
     category: "",
     brand: "",
     stock: "",
-    imageURL: "",
     distributor: "",
     serialNumber: "",
     expirationDate: "",
   });
 
-  // The "selectedFile" will store the actual file the user chooses
+  // We'll store the local file upload here (if needed)
   const [selectedFile, setSelectedFile] = useState(null);
 
+  const [categories, setCategories] = useState([]); // Array of categories from backend
   const [adjustedStocks, setAdjustedStocks] = useState({});
-  const [categories, setCategories] = useState([]);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    // 1. Fetch available categories from the database
+    // Fetch categories from your backend
     const fetchCategories = async () => {
       try {
         const accessToken = localStorage.getItem("accessToken");
@@ -42,17 +42,17 @@ const Products = () => {
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           },
         });
-        setCategories(response.data);  // store categories in state
+        setCategories(response.data); // store categories in state
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
-  
+
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    // Keep track of stock in a local state so we can adjust it in real-time
+    // Populate adjustedStocks for each product in the store
     setAdjustedStocks(
       products.reduce((acc, product) => {
         acc[product._id] = product.stock || 0;
@@ -61,17 +61,16 @@ const Products = () => {
     );
   }, [products]);
 
+  // Basic validation that checks if any required field is empty
   const handleValidation = () => {
     const errors = {};
-
     Object.keys(newProductData).forEach((key) => {
       if (!newProductData[key]) {
         errors[key] = `${key.charAt(0).toUpperCase() + key.slice(1)} is required.`;
       }
     });
-
     setFormErrors(errors);
-    return Object.keys(errors).length === 0; 
+    return Object.keys(errors).length === 0;
   };
 
   const handleFileChange = (e) => {
@@ -82,15 +81,12 @@ const Products = () => {
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
-
-
     if (!handleValidation()) return;
 
     const parsedPrice = parseFloat(newProductData.price) || 0.0;
     const parsedStock = parseInt(newProductData.stock, 10) || 0;
 
     try {
-      // 2. Prepare multipart/form-data for uploading the file + product data
       const formData = new FormData();
       formData.append("name", newProductData.name);
       formData.append("description", newProductData.description);
@@ -98,14 +94,14 @@ const Products = () => {
       formData.append("category", newProductData.category);
       formData.append("brand", newProductData.brand);
       formData.append("stock", parsedStock);
+      formData.append("distributor", newProductData.distributor);
+      formData.append("serialNumber", newProductData.serialNumber);
+      formData.append("expirationDate", newProductData.expirationDate);
 
-      // If the user has selected a file, append it
       if (selectedFile) {
         formData.append("image", selectedFile);
       }
 
-      // If your `createProduct` method does not already handle FormData,
-      // you can do a direct axios call here. Example:
       const accessToken = localStorage.getItem("accessToken");
       await axios.post(`${backendUrl}/api/products`, formData, {
         headers: {
@@ -114,10 +110,7 @@ const Products = () => {
         },
       });
 
-      // Or if your createProduct function does handle FormData, you can do:
-      // await createProduct(formData);
-
-      // Reset form fields
+      // Reset everything
       setNewProductData({
         name: "",
         description: "",
@@ -125,15 +118,18 @@ const Products = () => {
         category: "",
         brand: "",
         stock: "",
-        imageURL: "",
         distributor: "",
         serialNumber: "",
         expirationDate: "",
       });
+      setSelectedFile(null);
       setFormErrors({});
+
+      // Refresh the product list
+      fetchProducts();
     } catch (error) {
       console.error("Create product failed:", error);
-      alert("Failed to create product. Please check console for details.");
+      alert("Failed to create product. Check the console for details.");
     }
   };
 
@@ -182,7 +178,6 @@ const Products = () => {
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Products</h1>
 
-      {/* 3. Form to create new product */}
       <form onSubmit={handleCreateProduct} className="mb-8 border p-4">
         <h2 className="text-xl font-bold mb-4">Add New Product</h2>
 
@@ -213,7 +208,7 @@ const Products = () => {
               setNewProductData({ ...newProductData, description: e.target.value })
             }
             className="w-full border rounded px-2 py-1"
-          ></textarea>
+          />
           {formErrors.description && (
             <p className="text-red-500 text-sm">{formErrors.description}</p>
           )}
@@ -234,16 +229,23 @@ const Products = () => {
           {formErrors.price && <p className="text-red-500 text-sm">{formErrors.price}</p>}
         </div>
 
+        {/* Category dropdown instead of text input */}
         <div className="mb-4">
           <label className="block font-medium mb-1">Category</label>
-          <input
-            type="text"
+          <select
             value={newProductData.category}
             onChange={(e) =>
               setNewProductData({ ...newProductData, category: e.target.value })
             }
             className="w-full border rounded px-2 py-1"
-          />
+          >
+            <option value="">Select a Category</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
           {formErrors.category && (
             <p className="text-red-500 text-sm">{formErrors.category}</p>
           )}
@@ -276,19 +278,20 @@ const Products = () => {
           {formErrors.stock && <p className="text-red-500 text-sm">{formErrors.stock}</p>}
         </div>
 
+        {/* Local File Upload */}
         <div className="mb-4">
-          <label className="block font-medium mb-1">Image URL</label>
+          <label className="block font-medium mb-1">
+            Product Image (PNG, JPEG, or SVG)
+          </label>
           <input
-            type="url"
-            value={newProductData.imageURL}
-            onChange={(e) =>
-              setNewProductData({ ...newProductData, imageURL: e.target.value })
-            }
+            type="file"
+            accept="image/png, image/jpeg, image/svg+xml"
+            onChange={handleFileChange}
             className="w-full border rounded px-2 py-1"
           />
-          {formErrors.imageURL && (
-            <p className="text-red-500 text-sm">{formErrors.imageURL}</p>
-          )}
+          <p className="text-sm text-gray-500 mt-1">
+            Allowed file types: .png, .jpeg, .svg
+          </p>
         </div>
 
         <div className="mb-4">
@@ -341,6 +344,7 @@ const Products = () => {
         </button>
       </form>
 
+      {/* Display existing products in a table */}
       <div className="overflow-x-auto">
         <table className="table-auto border-collapse border border-gray-300 w-full">
           <thead className="bg-gray-100">

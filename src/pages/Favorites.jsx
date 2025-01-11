@@ -68,7 +68,7 @@ const Favorites = () => {
           return (
             <div key={item._id} className="bg-white border rounded-lg shadow-sm p-4 flex flex-col">
               {/* Make image clickable to navigate to product details */}
-              <Link to={`/products/${item._id}`}>
+              <Link to={`/product/${item._id}`}>
                 <img
                   src={item.imageURL}
                   alt={item.name}
