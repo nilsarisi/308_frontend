@@ -11,27 +11,27 @@ import { ProductManagerProvider } from "./contexts/ProductManager";
 import Deliverylist from "./pages/Deliverylist";
 import CategoryManagement from "./pages/CategoryManagement";
 import TokenHandler from './pages/TokenHandler';
-
-
+import Dashboard from './pages/Dashboard';
 
 const App = () => {
     return (
         <ProductManagerProvider>
             <div className="bg-gray-50 min-h-screen">
                 <Navbar />
-            <main className="flex-grow">
-                <TokenHandler />
-                <Routes>
-                    <Route path="/" element={<Navigate to="/products" />} />
-                    <Route path="/products" element={<Products />} />
-                    <Route path="/product/:productID" element={<Product />} />
-                    <Route path="/orders" element={<Orders />} />
-                    <Route path="/invoice" element={<Invoice />} />
-                    <Route path="/comment-moderation" element={<CommentModeration />} /> 
-                    <Route path="/delivery-list" element={<Deliverylist />} />
-                    <Route path="/category-management" element={<CategoryManagement />} />
-                </Routes>
-            </main>
+                <main className="flex-grow">
+                    <TokenHandler />
+                    <Routes>
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/products" element={<Products />} />
+                        <Route path="/product/:productID" element={<Product />} />
+                        <Route path="/orders" element={<Orders />} />
+                        <Route path="/invoice" element={<Invoice />} />
+                        <Route path="/comment-moderation" element={<CommentModeration />} />
+                        <Route path="/delivery-list" element={<Deliverylist />} />
+                        <Route path="/category-management" element={<CategoryManagement />} />
+                    </Routes>
+                </main>
             </div>
         </ProductManagerProvider>
     );

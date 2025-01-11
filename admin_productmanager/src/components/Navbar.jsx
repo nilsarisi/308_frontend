@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
-import { AiOutlineMenu, AiOutlineClose, AiOutlineDashboard, AiOutlineUnorderedList, AiOutlineComment } from "react-icons/ai";
+import home_icon from "../assets/home.png"; // Import your custom Dashboard icon
+import { AiOutlineMenu, AiOutlineClose, AiOutlineUnorderedList, AiOutlineComment } from "react-icons/ai";
 
 const Navbar = () => {
     const [menuVisible, setMenuVisible] = useState(false);
@@ -43,16 +44,20 @@ const Navbar = () => {
                     className="w-6 h-6 cursor-pointer text-white m-4"
                 />
                 <div className="flex flex-col space-y-4 p-4">
+                    <Link to="/dashboard" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
+                        <img src={home_icon} alt="Dashboard" className="w-5 h-5" />
+                        Home 
+                    </Link>
                     <Link to="/products" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
                         <AiOutlineUnorderedList className="w-5 h-5" />
                         Products
                     </Link>
                     <Link to="/orders" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
-                        <AiOutlineDashboard className="w-5 h-5" />
+                        <AiOutlineUnorderedList className="w-5 h-5" />
                         Orders
                     </Link>
                     <Link to="/invoice" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
-                        <AiOutlineDashboard className="w-5 h-5" />
+                        <AiOutlineUnorderedList className="w-5 h-5" />
                         Invoice
                     </Link>
                     <Link to="/comment-moderation" className="flex items-center gap-2 hover:text-blue-300" onClick={handleMenuToggle}>
