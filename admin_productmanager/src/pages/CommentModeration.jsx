@@ -13,45 +13,36 @@ const CommentModeration = () => {
       const token = localStorage.getItem("accessToken");
 
       try {
-        // 1) İlk olarak /comments/pending ile tüm yorumları alıyoruz
         const response = await axios.get(`${backendUrl}/api/products/comments/pending`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        const rawComments = response.data; // Burada productId, commentId, text, username var ama productName yok.
-
-        // 2) Her yorumdaki productId ile /api/products/:id istekleri atıyoruz
-        //    Promise.all kullanarak paralel istekler yapılır.
+        const rawComments = response.data; 
         const commentsWithNames = await Promise.all(
           rawComments.map(async (comment) => {
             if (!comment.productId) {
-              // productId yoksa olduğu gibi dön
+
               return comment;
             }
 
-            // /api/products/:id ile istek atarak productName'i alıyoruz
             try {
               const productRes = await axios.get(`${backendUrl}/api/products/${comment.productId}`, {
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
               });
-              // productRes.data.name varsayılarak, productName ekliyoruz
               return {
                 ...comment,
-                productName: productRes.data.name || "", // yoksa boş string
+                productName: productRes.data.name || "", 
               };
             } catch (innerErr) {
-              // Tek bir ürün bilgisi alınamadıysa yine de orijinal yorumu dön
               console.error("Failed to fetch product name:", innerErr);
               return comment;
             }
           })
         );
-
-        // 3) Artık her comment objesinde productName alanı da var
         setComments(commentsWithNames);
       } catch (err) {
         setError("Failed to fetch comments");
@@ -120,7 +111,6 @@ const CommentModeration = () => {
             {comments.map((comment) => (
               <tr key={comment.commentId} className="even:bg-gray-50">
                 <td className="border border-gray-300 px-6 py-4">{comment.username}</td>
-                {/* Artık comment.productName, Promise.all sonrası gelmiş olacak */}
                 <td className="border border-gray-300 px-6 py-4">{comment.productName}</td>
                 <td className="border border-gray-300 px-6 py-4">{comment.text}</td>
                 <td className="border border-gray-300 px-6 py-4">
