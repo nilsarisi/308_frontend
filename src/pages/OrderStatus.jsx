@@ -123,24 +123,24 @@ const OrderStatus = () => {
                   </p>
                 ) :(
   // Only show refund button if within returnable period
-  new Date() < new Date(order.isReturnable) && (
-    <button
-      className={`mt-2 py-1 px-2 rounded ${
-        item.isReturnable
-          ? "bg-red-500 text-white"
-          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-      }`}
-      onClick={() =>
-        item.isReturnable
-          ? setRefundRequest({ orderId: order.orderId, productId: item.productId })
-          : alert("The refund period for this product has expired.")
-      }
-      disabled={!item.isReturnable}
-    >
-      Request Refund
-    </button>
-  )
-)}
+  Date.now() < new Date(order.createdAt).getTime() + (30 * 24 * 60 * 60 * 1000) && (
+                <button
+                  className={`mt-2 py-1 px-2 rounded ${
+                    item.isReturnable
+                      ? "bg-red-500 text-white"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                  onClick={() =>
+                    item.isReturnable
+                      ? setRefundRequest({ orderId: order.orderId, productId: item.productId })
+                      : alert("The refund period for this product has expired.")
+                  }
+                  disabled={!item.isReturnable}
+                >
+                  Request Refund
+                </button>
+              )
+              )}
               </div>
             ))}
             {order.status === "processing" && (
