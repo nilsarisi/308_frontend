@@ -3,7 +3,6 @@ import { Container, Card, Alert } from 'react-bootstrap';
 import { useCart } from '../contexts/CartContext';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 const AccountInfo = () => {
     const { user, isAuthenticated } = useCart();
