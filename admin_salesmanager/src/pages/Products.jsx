@@ -103,7 +103,7 @@ const Products = () => {
                       <>
                         <p>
                           <span className="text-sm text-gray-500 line-through">
-                            Original: ₺{originalPrice.toFixed(2)}
+                            Original: ${originalPrice.toFixed(2)}
                           </span>
                         </p>
                         <p>
@@ -113,14 +113,14 @@ const Products = () => {
                         </p>
                         <p>
                           <span className="text-lg text-green-600 font-bold">
-                            Current: ₺{currentPrice.toFixed(2)}
+                            Current: ${currentPrice.toFixed(2)}
                           </span>
                         </p>
                       </>
                     ) : (
                       <p>
                         <span className="text-lg text-green-600 font-bold">
-                          Price: ₺{currentPrice.toFixed(2)}
+                          Price: ${currentPrice.toFixed(2)}
                         </span>
                       </p>
                     )}

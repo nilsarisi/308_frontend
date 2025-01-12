@@ -112,7 +112,7 @@ const OrderStatus = () => {
             {order.products.map((item, index) => (
               <div key={index} className="mt-2">
                 <p>
-                  {item.name} x {item.quantity} - ₺{(item.priceAtPurchase * item.quantity).toFixed(2)}
+                  {item.name} x {item.quantity} - ${(item.priceAtPurchase * item.quantity).toFixed(2)}
                 </p>
                 {order.status !== "delivered" || order.status === "canceled" ? null : item.refundStatus ? (
                   <p className="text-blue-500 mt-1">
@@ -152,7 +152,7 @@ const OrderStatus = () => {
               </button>
             )}
             <p className="mt-4">
-              <strong>Total Amount:</strong> ₺{order.totalAmount.toFixed(2)}
+              <strong>Total Amount:</strong> ${order.totalAmount.toFixed(2)}
             </p>
           </div>
         ))

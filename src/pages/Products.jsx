@@ -179,7 +179,7 @@ const Products = () => {
             priceRange[0] === 0 && priceRange[1] === 100 ? 'font-bold text-blue-700' : ''
           }`}
         >
-          ₺0 - ₺100
+          $0 - $100
         </button>
         <button
           onClick={() => setPriceRange([100, 500])}
@@ -187,7 +187,7 @@ const Products = () => {
             priceRange[0] === 100 && priceRange[1] === 500 ? 'font-bold text-blue-700' : ''
           }`}
         >
-          ₺100 - ₺500
+          $100 - $500
         </button>
         <button
           onClick={() => setPriceRange([500, 1000])}
@@ -195,7 +195,7 @@ const Products = () => {
             priceRange[0] === 500 && priceRange[1] === 1000 ? 'font-bold text-blue-700' : ''
           }`}
         >
-          ₺500 - ₺1000
+          $500 - $1000
         </button>
 
         <h2 className="text-xl font-bold mt-8 mb-4">Availability</h2>
@@ -237,14 +237,14 @@ const Products = () => {
                 {product.discountPercentage ? (
               <div className="mt-2">
                 <p className="text-sm line-through text-gray-500">
-                  ₺{product.originalPrice.toFixed(2)}
+                  ${product.originalPrice.toFixed(2)}
                 </p>
                 <p className="text-lg text-green-600 font-bold">
-                  ₺{product.price.toFixed(2)} ({product.discountPercentage}% OFF)
+                  ${product.price.toFixed(2)} ({product.discountPercentage}% OFF)
                 </p>
               </div>
             ) : (
-              <p className="text-lg text-gray-700 mt-2">₺{product.price.toFixed(2)}</p>
+              <p className="text-lg text-gray-700 mt-2">${product.price.toFixed(2)}</p>
             )}
                 <p className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
                   {product.stock > 0 ? 'In Stock' : 'Out of Stock'}

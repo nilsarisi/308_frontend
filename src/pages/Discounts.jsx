@@ -39,10 +39,10 @@ const Discounts = () => {
               {product.discountPercentage > 0 && (
                 <div className="mt-2">
                   <p className="text-sm line-through text-gray-500">
-                    ₺{product.originalPrice.toFixed(2)}
+                    ${product.originalPrice.toFixed(2)}
                   </p>
                   <p className="text-lg text-green-600 font-bold">
-                    ₺{product.price.toFixed(2)} ({product.discountPercentage}% OFF)
+                    ${product.price.toFixed(2)} ({product.discountPercentage}% OFF)
                   </p>
                 </div>
               )}

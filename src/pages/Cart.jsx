@@ -120,7 +120,7 @@ const Cart = () => {
                     {isAuthenticated ? item.productId?.name : item.name}
                   </p>
                   <p>
-                    ₺
+                    $
                     {isAuthenticated ? item.productId?.price : item.price} x{' '}
                     {item.quantity}
                   </p>
@@ -200,7 +200,7 @@ const Cart = () => {
           </div>
           <div className="flex justify-between mb-4">
             <span>Total Price:</span>
-            <span>₺{totalPriceFormatted}</span>
+            <span>${totalPriceFormatted}</span>
           </div>
           <button
             onClick={handlePlaceOrder}
