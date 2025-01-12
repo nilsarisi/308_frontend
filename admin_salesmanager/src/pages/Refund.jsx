@@ -8,6 +8,7 @@ const Refunds = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notes, setNotes] = useState({});
+  const [sortOrder, setSortOrder] = useState("desc"); // Default to descending order
 
   useEffect(() => {
     fetchRefundRequests();
@@ -75,6 +76,22 @@ const Refunds = () => {
     }
   };
 
+  const sortRefunds = () => {
+    const sortedRefunds = [...refunds].sort((a, b) => {
+      const dateA = new Date(a.requestedAt);
+      const dateB = new Date(b.requestedAt);
+
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+    setRefunds(sortedRefunds);
+  };
+
+  useEffect(() => {
+    if (refunds.length > 0) {
+      sortRefunds();
+    }
+  }, [sortOrder]); // Re-sort refunds whenever the sort order changes
+
   if (loading) {
     return <p className="text-center">Loading refund requests...</p>;
   }
@@ -95,6 +112,17 @@ const Refunds = () => {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Refund Requests</h1>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Sort by Date:</label>
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          className="border px-4 py-2 rounded"
+        >
+          <option value="desc">Newest to Oldest</option>
+          <option value="asc">Oldest to Newest</option>
+        </select>
+      </div>
       <table className="table-auto w-full border-collapse border border-gray-300">
         <thead>
           <tr>
