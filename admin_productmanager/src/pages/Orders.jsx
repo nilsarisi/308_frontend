@@ -4,40 +4,37 @@ import axios from "axios";
 const backendUrl = "http://localhost:5001";
 
 const DeliveryTracking = () => {
-  const [orders, setOrders] = useState([]); 
-  const [filteredOrders, setFilteredOrders] = useState([]); 
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [error, setError] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all"); 
+  const [selectedStatus, setSelectedStatus] = useState("all");
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchDeliveryList = async () => {
       try {
+        const accessToken = localStorage.getItem("accessToken");
 
-        const accessToken = localStorage.getItem("accessToken");  
-        
-        const response = await axios.get(`${backendUrl}/api/orders/admin/all`, {
+        const response = await axios.get(`${backendUrl}/api/orders/delivery-list`, {
           headers: {
             "Content-Type": "application/json",
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           },
         });
+
         if (Array.isArray(response.data)) {
-          const sortedOrders = response.data.sort((a, b) => {
-            const statusOrder = { processing: 1, "in-transit": 2, delivered: 3 };
-            return statusOrder[a.status] - statusOrder[b.status];
-          });
-          setOrders(sortedOrders);
-          setFilteredOrders(sortedOrders); 
+          setOrders(response.data);
+          setFilteredOrders(response.data);
         } else {
           throw new Error("API did not return an array.");
         }
       } catch (error) {
-        console.error("Error fetching orders:", error.message);
-        setError("Failed to fetch orders.");
+        console.error("Error fetching delivery list:", error.message);
+        setError("Failed to fetch delivery list.");
       }
     };
-    fetchOrders();
+    fetchDeliveryList();
   }, []);
+
 
   const handleStatusFilter = (status) => {
     setSelectedStatus(status);
@@ -50,12 +47,12 @@ const DeliveryTracking = () => {
   };
 
   return (
-    <div style={{ padding: "0 40px", marginBottom: "40px" }}> 
+    <div style={{ padding: "0 40px", marginBottom: "40px" }}>
       <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "20px" }}>
         Delivery Tracking
       </h1>
       {error && <p className="error">{error}</p>}
-  
+
       <div style={{ marginBottom: "20px" }}>
         <label style={{ fontWeight: "bold", marginRight: "10px" }}>
           Filter by Status:
@@ -76,46 +73,43 @@ const DeliveryTracking = () => {
           <option value="delivered">Delivered</option>
         </select>
       </div>
-  
+
       <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
         <thead>
           <tr>
-            <th style={tableHeaderStyle}>Order ID</th>
+            <th style={tableHeaderStyle}>Delivery ID</th>
+            <th style={tableHeaderStyle}>Customer ID</th>
+            <th style={tableHeaderStyle}>Product ID</th>
+            <th style={tableHeaderStyle}>Quantity</th>
+            <th style={tableHeaderStyle}>Total Price</th>
+            <th style={tableHeaderStyle}>Delivery Address</th>
             <th style={tableHeaderStyle}>Status</th>
-            <th style={tableHeaderStyle}>Estimated Delivery</th>
-            <th style={tableHeaderStyle}>Total Amount</th>
-            <th style={tableHeaderStyle}>Products</th>
-            <th style={tableHeaderStyle}>Address</th>
-
             <th style={tableHeaderStyle}>Update Status</th>
           </tr>
         </thead>
         <tbody>
           {filteredOrders.map((order) => (
-            <tr key={order.orderId}>
-              <td style={tableCellStyle}>{order.orderId}</td>
-              <td style={tableCellStyle}>{order.status}</td>
-              <td style={tableCellStyle}>{order.estimatedDelivery}</td>
-              <td style={tableCellStyle}>${order.totalAmount}</td>
+            <tr key={order.deliveryId}>
+              <td style={tableCellStyle}>{order.deliveryId}</td>
+              <td style={tableCellStyle}>{order.customerId}</td>
               <td style={tableCellStyle}>
-                {order.products.map((product, index) => (
-                  <div key={index}>
-                    {product.name} - {product.quantity} pcs - ${product.price}
-                  </div>
+                {order.products.map((product) => (
+                  <div key={product.productId}>{product.productId}</div>
                 ))}
               </td>
-              
               <td style={tableCellStyle}>
-                {order.address
-                  ? `${order.address.name}, ${order.address.address}, 
-                     ${order.address.city}, ${order.address.postalCode}, 
-                     ${order.address.country}`
-                  : "No Address"}
+                {order.products.map((product) => (
+                  <div key={product.productId}>{product.quantity}</div>
+                ))}
               </td>
-
+              <td style={tableCellStyle}>${order.totalPrice}</td>
+              <td style={tableCellStyle}>
+                {order.deliveryAddress || "No Address"}
+              </td>
+              <td style={tableCellStyle}>{order.status}</td>
               <td style={tableCellStyle}>
                 <StatusUpdateDropdown
-                  orderId={order.orderId}
+                  orderId={order.deliveryId}
                   currentStatus={order.status}
                 />
               </td>
@@ -127,6 +121,7 @@ const DeliveryTracking = () => {
   );
 };
 
+
 const StatusUpdateDropdown = ({ orderId, currentStatus }) => {
   const [status, setStatus] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
@@ -136,8 +131,7 @@ const StatusUpdateDropdown = ({ orderId, currentStatus }) => {
     const newStatus = e.target.value;
     setLoading(true);
 
-    
-    const accessToken = localStorage.getItem("accessToken"); 
+    const accessToken = localStorage.getItem("accessToken");
 
     axios
       .put(
