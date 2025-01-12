@@ -20,8 +20,8 @@ const Account = () => {
             </a>
           </li>
           <li>
-            <a href="/settings" className="text-blue-500 hover:underline">
-              Account Settings
+            <a href="/account-info" className="text-blue-500 hover:underline">
+              Account Information
             </a>
           </li>
         </ul>

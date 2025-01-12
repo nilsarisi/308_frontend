@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -20,6 +21,7 @@ import OrderStatus from './pages/OrderStatus';
 import Account from './pages/Account';
 import Favorites from './pages/Favorites';
 import Discounts from './pages/Discounts';
+import AccountInfo from './pages/AccountInfo';
 
 const App = () => {
   return (
@@ -45,6 +47,7 @@ const App = () => {
             <Route path="/product/:productID" element={<Product />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/discounts" element={<Discounts />} />
+            <Route path="/account-info" element={<AccountInfo />} />
           </Routes>
         </main>
         <Footer />
