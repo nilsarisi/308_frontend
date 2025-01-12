@@ -343,7 +343,7 @@ const Products = () => {
                   {product.name}
                 </td>
                 <td className="border border-gray-300 px-6 py-4">
-                  ₺{product.price.toFixed(2)}
+                  ${product.price.toFixed(2)}
                 </td>
                 <td className="border border-gray-300 px-6 py-4">
                   <div className="flex items-center gap-2">
