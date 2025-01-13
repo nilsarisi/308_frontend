@@ -5,7 +5,7 @@ const OrderSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const orderData = location.state;
-
+  console.log("Order Data in OrderSuccess Page:", orderData);
   if (!orderData) {
     return (
       <div className="container mx-auto p-8">
@@ -38,7 +38,12 @@ const OrderSuccess = () => {
         <p>
           <strong>Estimated Delivery:</strong> {orderData.estimatedDelivery}
         </p>
+        <p>
+          <strong>Address:</strong>{" "}
+          {`${orderData.address?.name || "N/A"}, ${orderData.address?.address || "N/A"}, ${orderData.address?.city || "N/A"}, ${orderData.address?.postalCode || "N/A"}, ${orderData.address?.country || "N/A"}`}
+        </p>
         <h3 className="mt-4 text-xl font-semibold">Order Summary:</h3>
+        
         {orderData.items.map((item, index) => (
           <p key={index}>
             {item.productId?.name || "Unknown Product"} x {item.quantity} - ₺

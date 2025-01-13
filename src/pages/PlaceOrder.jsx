@@ -111,6 +111,14 @@ const PlaceOrder = () => {
   
       // Clear the cart and navigate to the success page with order data
       clearCart();
+      console.log("Navigating to OrderSuccess with state:", {
+        orderNumber: orderId,
+        status: "Processing",
+        estimatedDelivery: "Within 5-7 business days",
+        items: cart,
+        totalPrice,
+        address: shippingInfo,
+      });
       navigate("/order-success", {
         state: {
           orderNumber: orderId,
@@ -118,6 +126,7 @@ const PlaceOrder = () => {
           estimatedDelivery: "Within 5-7 business days",
           items: cart,
           totalPrice,
+          address: shippingInfo,
         },
       });
     } catch (err) {

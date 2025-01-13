@@ -108,6 +108,10 @@ const OrderStatus = () => {
                 ? "Cancelled"
                 : order.estimatedDelivery || "N/A"}
             </p>
+            <p className="mt-2">
+            <strong>Address:</strong>{" "}
+            {`${order.address?.street || "N/A"}, ${order.address?.city || "N/A"}, ${order.address?.postalCode || "N/A"}, ${order.address?.country || "N/A"}`}
+            </p>
             <h3 className="text-xl font-bold mt-6">Order Summary</h3>
             {order.products.map((item, index) => (
               <div key={index} className="mt-2">
@@ -122,8 +126,8 @@ const OrderStatus = () => {
                       : item.refundStatus.charAt(0).toUpperCase() + item.refundStatus.slice(1)}
                   </p>
                 ) :(
-  // Only show refund button if within returnable period
-  Date.now() < new Date(order.createdAt).getTime() + (30 * 24 * 60 * 60 * 1000) && (
+                  
+              Date.now() < new Date(order.createdAt).getTime() + (30 * 24 * 60 * 60 * 1000) && (
                 <button
                   className={`mt-2 py-1 px-2 rounded ${
                     item.isReturnable
