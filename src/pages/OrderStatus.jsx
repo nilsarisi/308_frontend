@@ -15,19 +15,20 @@ const OrderStatus = () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) throw new Error("Authentication token is missing.");
-
+  
       const response = await axios.get(`${backendUrl}/api/orders/all`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-
+  
       const fetchedOrders = response.data.map((order) => ({
         ...order,
+        address: order.address || {}, // Ensure address field is always an object
         products: (order.products || []).map((product) => ({
           ...product,
           refundStatus: product.refundStatus || null,
         })),
       }));
-
+  
       setOrders(fetchedOrders);
     } catch (err) {
       console.error("Failed to fetch order details:", err.message);
@@ -110,7 +111,7 @@ const OrderStatus = () => {
             </p>
             <p className="mt-2">
             <strong>Address:</strong>{" "}
-            {`${order.address?.street || "N/A"}, ${order.address?.city || "N/A"}, ${order.address?.postalCode || "N/A"}, ${order.address?.country || "N/A"}`}
+            {`${order.address?.name || "N/A"}, ${order.address?.street || "N/A"}, ${order.address?.city || "N/A"}, ${order.address?.postalCode || "N/A"}, ${order.address?.country || "N/A"}`}
             </p>
             <h3 className="text-xl font-bold mt-6">Order Summary</h3>
             {order.products.map((item, index) => (
