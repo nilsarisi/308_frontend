@@ -41,45 +41,47 @@ const AccountInfo = () => {
   }
 
   return (
-    <Container className="py-5">
-      <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Account Information</h2>
-      </div>
-      
-      <Card className="shadow-lg border-0 rounded-lg overflow-hidden">
-        <Card.Header className="bg-primary text-white py-3">
-          <h4 className="mb-0 font-semibold">Personal Details</h4>
-        </Card.Header>
-        <Card.Body className="bg-white p-4">
-          <div className="grid gap-4">
-            <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-              <h6 className="text-sm text-gray-600 mb-1">Customer ID</h6>
-              <p className="text-gray-900 font-medium">{user?.id}</p>
-            </div>
+    <div className="min-h-screen flex items-center justify-center">
+      <Container>
+        <div className="text-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-800">Account Information</h2>
+        </div>
+        
+        <Card className="shadow-lg border-0 rounded-lg overflow-hidden">
+          <Card.Header className="bg-primary text-white py-3">
+            <h4 className="mb-0 font-semibold">Personal Details</h4>
+          </Card.Header>
+          <Card.Body className="bg-white p-4">
+            <div className="grid gap-4">
+              <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                <h6 className="text-sm text-gray-600 mb-1">Customer ID</h6>
+                <p className="text-gray-900 font-medium">{user?.id}</p>
+              </div>
 
-            <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-              <h6 className="text-sm text-gray-600 mb-1">Name</h6>
-              <p className="text-gray-900 font-medium">{user?.name}</p>
-            </div>
+              <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                <h6 className="text-sm text-gray-600 mb-1">Name</h6>
+                <p className="text-gray-900 font-medium">{user?.name}</p>
+              </div>
 
-            <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-              <h6 className="text-sm text-gray-600 mb-1">Tax ID</h6>
-              <p className="text-gray-900 font-medium">{taxid}</p>
-            </div>
+              <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                <h6 className="text-sm text-gray-600 mb-1">Tax ID</h6>
+                <p className="text-gray-900 font-medium">{taxid}</p>
+              </div>
 
-            <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-              <h6 className="text-sm text-gray-600 mb-1">Email Address</h6>
-              <p className="text-gray-900 font-medium">{user?.email}</p>
-            </div>
+              <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                <h6 className="text-sm text-gray-600 mb-1">Email Address</h6>
+                <p className="text-gray-900 font-medium">{user?.email}</p>
+              </div>
 
-            <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-              <h6 className="text-sm text-gray-600 mb-1">Home Address</h6>
-              <p className="text-gray-900 font-medium">{user?.address}</p>
+              <div className="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                <h6 className="text-sm text-gray-600 mb-1">Home Address</h6>
+                <p className="text-gray-900 font-medium">{user?.address}</p>
+              </div>
             </div>
-          </div>
-        </Card.Body>
-      </Card>
-    </Container>
+          </Card.Body>
+        </Card>
+      </Container>
+    </div>
   );
 };
 
